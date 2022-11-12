@@ -385,24 +385,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "semilattice-client-lib"
-version = "0.1.0"
-
-[[package]]
-name = "semilattice-webserver"
-version = "0.1.0"
-dependencies = [
- "futures-util",
- "hyper",
- "hyper-rustls",
- "rustls",
- "rustls-pemfile",
- "semilattice-client-lib",
- "tokio",
- "tokio-rustls",
-]
-
-[[package]]
 name = "slab"
 version = "0.4.7"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -608,6 +590,24 @@ checksum = "f095d78192e208183081cc07bc5515ef55216397af48b873e5edcd72637fa1bd"
 dependencies = [
  "ring",
  "untrusted",
+]
+
+[[package]]
+name = "wild-doc-client-lib"
+version = "0.0.0"
+
+[[package]]
+name = "wild-doc-webserver"
+version = "0.0.0"
+dependencies = [
+ "futures-util",
+ "hyper",
+ "hyper-rustls",
+ "rustls",
+ "rustls-pemfile",
+ "tokio",
+ "tokio-rustls",
+ "wild-doc-client-lib",
 ]
 
 [[package]]

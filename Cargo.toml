@@ -1,9 +1,16 @@
 [package]
 name = "wild-doc-webserver"
-version = "0.1.0"
+version = "0.0.0"
 edition = "2021"
 
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+authors = ["Oden Shirataki <oden.srtk@gmail.com>"]
+
+description = "This is still in development."
+
+repository = "https://github.com/OdenShirataki/wild-doc-webserver"
+
+keywords = ["database","javascript","v8","xml","html"]
+categories = ["database-implementations","web-programming","template-engine"]
 
 [dependencies]
 hyper = {version="0.14",features=["server"]}
@@ -13,4 +20,4 @@ rustls-pemfile="1.0"
 hyper-rustls = "0.23"
 futures-util = "0.3"
 tokio-rustls = "0.23"
-semilattice-client-lib={path="../semilattice-client-lib"}
+wild-doc-client-lib={path="../wild-doc-client-lib",version="0.0"}
