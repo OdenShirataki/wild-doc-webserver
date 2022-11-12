@@ -12,6 +12,8 @@ repository = "https://github.com/OdenShirataki/wild-doc-webserver"
 keywords = ["database","javascript","v8","xml","html"]
 categories = ["database-implementations","web-programming","template-engine"]
 
+license = "MIT/Apache-2.0"
+
 [dependencies]
 hyper = {version="0.14",features=["server"]}
 tokio = { version = "1.21", features = ["rt-multi-thread", "macros"] }
