@@ -1,0 +1,16 @@
+[package]
+name = "wild-doc-webserver"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+hyper = {version="0.14",features=["server"]}
+tokio = { version = "1.21", features = ["rt-multi-thread", "macros"] }
+rustls = "0.20"
+rustls-pemfile="1.0"
+hyper-rustls = "0.23"
+futures-util = "0.3"
+tokio-rustls = "0.23"
+semilattice-client-lib={path="../semilattice-client-lib"}
