@@ -14,7 +14,7 @@ pub(crate) mod response;
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
-    let addr_http: SocketAddr = ([127, 0, 0, 1], 1337).into();
+    let addr_http: SocketAddr = ([127, 0, 0, 1], 80).into();
     let http_server = async move {
         let listener = TcpListener::bind(addr_http).await.unwrap();
         loop {

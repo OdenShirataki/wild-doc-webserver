@@ -1,4 +1,4 @@
-<ss><html>
+<wd><html>
     <head></head>
     <body>
         <form method="post" action="">
@@ -7,4 +7,4 @@
             <button>登録</button>
         </form>
     </body>
-</html></ss>
+</html></wd>
