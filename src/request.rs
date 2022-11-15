@@ -1,4 +1,4 @@
-use hyper::{Request, Body, Response, Method, StatusCode};
+use hyper::{Request, Body, Response, Method, StatusCode, Uri};
 
 use crate::response;
 
@@ -10,16 +10,31 @@ pub(super) async fn request(req: Request<Body>) -> Result<Response<Body>, hyper:
                 let document_root="document/".to_owned()+host;
                 match req.method(){
                     &Method::GET=>{
-                        if let Some(filename)=get_filename(&document_root,&req){
-                            *response.body_mut()=response::make(&document_root,&filename);
-                            let headers=response.headers_mut();
-                            headers.append("content-type","text/html; charset=utf-8".parse().unwrap());
+                        if let Some(filename)=get_filename(&document_root,req.uri()){
+                            *response.body_mut()=response::make(&document_root,&filename,None);
                         }else{
-                            *response.status_mut() = StatusCode::NOT_FOUND;
+                            let filename=document_root.to_owned()+"/route.xml";
+                            *response.body_mut()=response::make(&document_root,&filename,None);
                         }
+                        let headers=response.headers_mut();
+                        headers.append("content-type","text/html; charset=utf-8".parse().unwrap());
                     }
                     ,&Method::POST=>{
-                        *response.body_mut() = req.into_body();
+                        if let Some(filename)=get_filename(&document_root,req.uri()){
+                            *response.body_mut()=response::make(
+                                &document_root
+                                ,&filename
+                                ,Some(hyper::body::to_bytes(req.into_body()).await?)
+                            );
+                        }else{
+                            *response.body_mut()=response::make(
+                                &document_root
+                                ,&(document_root.to_owned()+"/route.xml")
+                                ,Some(hyper::body::to_bytes(req.into_body()).await?)
+                            );
+                        }
+                        let headers=response.headers_mut();
+                        headers.append("content-type","text/html; charset=utf-8".parse().unwrap());
                     }
                     ,_ => {
                         *response.status_mut() = StatusCode::NOT_FOUND;
@@ -32,11 +47,11 @@ pub(super) async fn request(req: Request<Body>) -> Result<Response<Body>, hyper:
     Ok(response)
 }
 
-fn get_filename(document_root:&str,req: &Request<Body>)->Option<String>{
-    let path=req.uri().path();
+fn get_filename(document_root:&str,uri:&Uri)->Option<String>{
+    let path=uri.path();
     if path.ends_with("/index.html")!=true{
-        let filename=document_root.to_owned()+path+&if path.ends_with("/"){
-            "index.sml"
+        let filename=document_root.to_owned()+"/public"+path+&if path.ends_with("/"){
+            "index.html"
         }else{
             ""
         };
