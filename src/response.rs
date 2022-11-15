@@ -4,10 +4,10 @@ use hyper::{Body, body::Bytes};
 use url::form_urlencoded;
 use wild_doc_client_lib::WildDocClient;
 
-pub(crate) fn make(document_root:&str,filename:&str,post:Option<Bytes>)->Body{
+pub(crate) fn make(document_root:&str,hostname:&str,filename:&str,post:Option<Bytes>)->Body{
     let mut contents=Vec::new();
 
-    let mut wdc=WildDocClient::new(document_root);
+    let mut wdc=WildDocClient::new(document_root,hostname);
     if let Some(post)=post{
         let params=form_urlencoded::parse(post.as_ref())
             .into_owned()
