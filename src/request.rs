@@ -12,29 +12,45 @@ pub(super) async fn request(req: Request<Body>) -> Result<Response<Body>, hyper:
                 match req.method(){
                     &Method::GET=>{
                         if let Some(filename)=get_filename(&document_root,&host,req.uri()){
-                            *response.body_mut()=response::make(&document_root,&host,&filename,None);
+                            if let Ok(b)=response::make(&document_root,&host,&filename,None){
+                                *response.body_mut()=b;
+                            }else{
+                                *response.body_mut()=Body::from("erro");
+                            }
                         }else{
                             let filename=document_root.to_owned()+"/route.xml";
-                            *response.body_mut()=response::make(&document_root,&host,&filename,None);
+                            if let Ok(b)=response::make(&document_root,&host,&filename,None){
+                                *response.body_mut()=b;
+                            }else{
+                                *response.body_mut()=Body::from("erro");
+                            }
                         }
                         let headers=response.headers_mut();
                         headers.append("content-type","text/html; charset=utf-8".parse().unwrap());
                     }
                     ,&Method::POST=>{
                         if let Some(filename)=get_filename(&document_root,&host,req.uri()){
-                            *response.body_mut()=response::make(
+                            if let Ok(b)=response::make(
                                 &document_root
                                 ,&host
                                 ,&filename
                                 ,Some(hyper::body::to_bytes(req.into_body()).await?)
-                            );
+                            ){
+                                *response.body_mut()=b;
+                            }else{
+                                *response.body_mut()=Body::from("erro");
+                            }
                         }else{
-                            *response.body_mut()=response::make(
+                            if let Ok(b)=response::make(
                                 &document_root
                                 ,&host
                                 ,&(document_root.to_owned()+&host+"/route.xml")
                                 ,Some(hyper::body::to_bytes(req.into_body()).await?)
-                            );
+                            ){
+                                *response.body_mut()=b;
+                            }else{
+                                *response.body_mut()=Body::from("erro");
+                            }
                         }
                         let headers=response.headers_mut();
                         headers.append("content-type","text/html; charset=utf-8".parse().unwrap());

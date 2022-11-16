@@ -660,11 +660,11 @@ dependencies = [
 
 [[package]]
 name = "wild-doc-client-lib"
-version = "0.0.2"
+version = "0.0.3"
 
 [[package]]
 name = "wild-doc-webserver"
-version = "0.0.3"
+version = "0.0.4"
 dependencies = [
  "futures-util",
  "hyper",
