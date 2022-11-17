@@ -4,8 +4,7 @@ use hyper::{Body, body::Bytes};
 use url::form_urlencoded;
 use wild_doc_client_lib::WildDocClient;
 
-pub(crate) fn make(document_root:&str,hostname:&str,filename:&str,post:Option<Bytes>)->std::io::Result<Body>{
-    
+pub(crate) fn make(wd:&mut WildDocClient,filename:&str,post:Option<Bytes>)->std::io::Result<Body>{
     if let Some(post)=post{
         let params=form_urlencoded::parse(post.as_ref())
             .into_owned()
@@ -17,6 +16,6 @@ pub(crate) fn make(document_root:&str,hostname:&str,filename:&str,post:Option<By
     let mut xml=String::new();
     f.read_to_string(&mut xml)?;
     Ok(Body::from(
-        WildDocClient::new(document_root,hostname).exec(&xml)?
+        wd.exec(&xml)?
     ))
 }
