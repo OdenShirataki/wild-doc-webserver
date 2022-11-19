@@ -6,10 +6,33 @@ use hyper::{Request, Body, Response, Method, StatusCode};
 use url::form_urlencoded;
 use multer::Multipart;
 use futures::stream::once;
+use serde::{Serialize,Serializer, ser::SerializeMap};
 
 use wild_doc_client_lib::WildDocClient;
 
 use crate::response;
+
+enum Param{
+    Array(HashMap<String,String>)
+    ,Scalar(String) 
+}
+impl Serialize for Param {
+    fn serialize<S>(&self,serializer: S)->Result<S::Ok,S::Error> where S: Serializer
+    {
+        match self{
+            Self::Array(array)=>{
+                let mut map = serializer.serialize_map(Some(array.len()))?;
+                for (k, v) in array {
+                    map.serialize_entry(k, v)?;
+                }
+                map.end()
+            }
+            ,Self::Scalar(string)=>{
+                serializer.serialize_str(string)
+            }
+        }
+    }
+}
 
 pub(super) async fn request(wd_host:String,wd_port:String,req: Request<Body>) -> Result<Response<Body>, hyper::Error> {
     let mut response = Response::new(Body::empty());
@@ -26,24 +49,25 @@ pub(super) async fn request(wd_host:String,wd_port:String,req: Request<Body>) ->
             let document_root="document/".to_owned();
 
             let mut wd=WildDocClient::new(&wd_host,&wd_port,&document_root,&host);
-            let mut params_all:HashMap<String,HashMap<String,String>>=HashMap::new();
+            let mut params_all:HashMap<String,Param>=HashMap::new();
+            params_all.insert("uri".to_owned(),Param::Scalar(uri.to_owned()));
 
             match req.method(){
                 &Method::GET=>{
-                    params_all.insert("headers".to_owned(),headers);
+                    params_all.insert("headers".to_owned(),Param::Array(headers));
                     let json=serde_json::to_string(&params_all).unwrap();
                     if let Some(filename)=get_filename(&document_root,&host,&uri){
-                        if let Ok(b)=response::make(&mut wd,&filename,json){
+                        if let Ok(b)=response::make(&mut wd,&filename,&json){
                             *response.body_mut()=b;
                         }else{
-                            *response.body_mut()=Body::from("erro");
+                            *response.body_mut()=Body::from("error");
                         }
                     }else{
                         let filename=document_root.to_owned()+"/route.xml";
-                        if let Ok(b)=response::make(&mut wd,&filename,json){
+                        if let Ok(b)=response::make(&mut wd,&filename,&json){
                             *response.body_mut()=b;
                         }else{
-                            *response.body_mut()=Body::from("erro");
+                            *response.body_mut()=Body::from("error");
                         }
                     }
                     let headers=response.headers_mut();
@@ -76,28 +100,23 @@ pub(super) async fn request(wd_host:String,wd_port:String,req: Request<Body>) ->
                         }
                     };
                     
-                    params_all.insert("post".to_owned(),params);
-                    params_all.insert("headers".to_owned(),headers);
+                    params_all.insert("post".to_owned(),Param::Array(params));
+                    params_all.insert("headers".to_owned(),Param::Array(headers));
                     let json=serde_json::to_string(&params_all).unwrap();
+
+                    //response::make(&mut wd,&(document_root.to_owned()+&host+"/post.xml"),&json);
+
                     if let Some(filename)=get_filename(&document_root,&host,&uri){
-                        if let Ok(b)=response::make(
-                            &mut wd
-                            ,&filename
-                            ,json
-                        ){
+                        if let Ok(b)=response::make(&mut wd,&filename,&json){
                             *response.body_mut()=b;
                         }else{
-                            *response.body_mut()=Body::from("erro");
+                            *response.body_mut()=Body::from("error");
                         }
                     }else{
-                        if let Ok(b)=response::make(
-                            &mut wd
-                            ,&(document_root.to_owned()+&host+"/route.xml")
-                            ,json
-                        ){
+                        if let Ok(b)=response::make(&mut wd,&(document_root.to_owned()+&host+"/route.xml"),&json){
                             *response.body_mut()=b;
                         }else{
-                            *response.body_mut()=Body::from("erro");
+                            *response.body_mut()=Body::from("error");
                         }
                     }
                     let headers=response.headers_mut();
