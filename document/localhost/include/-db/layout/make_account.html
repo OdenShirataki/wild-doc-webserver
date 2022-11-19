@@ -5,10 +5,45 @@
         gap:20px;
         margin-top:20px;
     }
-</style><div>
+</style>
+<wd:print wd:value="wd.input['post']['name']" />
+<div>
     <p>管理者アカウントがありません</p>
     <p>管理者アカウントを作成してください</p>
 </div>
+<form method="post" enctype="multipart/form-data">
+    <input type="hidden" name="_[action]" value="create_account_1st" />
+    <div>
+        <label class="mdc-text-field mdc-text-field--outlined">
+            <span class="mdc-notched-outline">
+            <span class="mdc-notched-outline__leading"></span>
+            <span class="mdc-notched-outline__notch">
+                    <span class="mdc-floating-label" id="name">Name</span>
+            </span>
+            <span class="mdc-notched-outline__trailing"></span>
+            </span>
+            <input class="mdc-text-field__input" type="text" name="name" aria-labelledby="name" />
+        </label>
+    </div>
+    <div>
+        <label class="mdc-text-field mdc-text-field--outlined">
+            <span class="mdc-notched-outline">
+            <span class="mdc-notched-outline__leading"></span>
+            <span class="mdc-notched-outline__notch">
+                    <span class="mdc-floating-label" id="password">Password</span>
+            </span>
+            <span class="mdc-notched-outline__trailing"></span>
+            </span>
+            <input class="mdc-text-field__input" type="text" name="password" aria-labelledby="password" />
+        </label>
+    </div>
+    <div>
+        <button class="mdc-button mdc-button--raised">
+            <span class="mdc-button__label">enctype="multipart/form-data"</span>
+        </button>
+    </div>
+</form>
+
 <form method="post">
     <input type="hidden" name="_[action]" value="create_account_1st" />
     <div>
