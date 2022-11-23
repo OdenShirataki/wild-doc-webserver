@@ -1,0 +1,60 @@
+<html>
+    <head>
+        <link href="https://unpkg.com/material-components-web@latest/dist/material-components-web.min.css" rel="stylesheet" />
+        <script src="https://unpkg.com/material-components-web@latest/dist/material-components-web.min.js"></script>
+        <script>
+            window.addEventListener('DOMContentLoaded', (event) => {
+                document.querySelectorAll('.mdc-text-field').forEach(function(e){
+                    mdc.textField.MDCTextField.attachTo(e);
+                });
+                document.querySelectorAll('.mdc-button').forEach(function(e){
+                    mdc.ripple.MDCRipple.attachTo(e);
+                });
+            });
+        </script>
+    </head>
+    <body>
+        <wd:search name="admin" collection="admin"></wd:search><wd:result var="admin" search="admin">
+            <wd:case wd:value="wd.v('admin').length">
+                <wd:when wd:value="0">
+                    <wd:include src="/include/-db/layout/make_account.html" />
+                </wd:when><wd:else>
+                    ログインフォームの表示
+                    <form method="post">
+                        <input type="hidden" name="action" value="create_account_1st" />
+                        <div>
+                            <label class="mdc-text-field mdc-text-field--outlined">
+                                <span class="mdc-notched-outline">
+                                <span class="mdc-notched-outline__leading"></span>
+                                <span class="mdc-notched-outline__notch">
+                                        <span class="mdc-floating-label" id="name">Name</span>
+                                </span>
+                                <span class="mdc-notched-outline__trailing"></span>
+                                </span>
+                                <input class="mdc-text-field__input" type="text" name="name" aria-labelledby="name" wd:value="wd.input.post.name" />
+                            </label>
+                        </div>
+                        <div>
+                            <label class="mdc-text-field mdc-text-field--outlined">
+                                <span class="mdc-notched-outline">
+                                <span class="mdc-notched-outline__leading"></span>
+                                <span class="mdc-notched-outline__notch">
+                                        <span class="mdc-floating-label" id="password">Password</span>
+                                </span>
+                                <span class="mdc-notched-outline__trailing"></span>
+                                </span>
+                                <input class="mdc-text-field__input" type="text" name="password" aria-labelledby="password" wd:value="wd.input.post.password" />
+                            </label>
+                        </div>
+                        <div>
+                            <button class="mdc-button mdc-button--raised">
+                                <span class="mdc-button__label">create administrator account</span>
+                            </button>
+                        </div>
+                    </form>
+                    <wd:include wd:src="wd.v('body_path')" />
+                </wd:else>
+            </wd:case>
+        </wd:result>
+    </body>
+</html>

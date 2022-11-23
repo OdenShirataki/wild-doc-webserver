@@ -1,0 +1,69 @@
+<h1>みんなの掲示板</h1>
+<wd:search name="posts" collection="bbs"></wd:search>
+<wd:result var="posts" search="posts">
+    <div>
+        find <wd:print wd:value="wd.v('posts').length" /> posts.
+    </div>
+    <ul>
+        <wd:for var="r" index="i" wd:in="wd.v('posts')"><li>
+            <wd:print wd:value="wd.v('r').row" /> : <wd:print wd:value="wd.v('r').field('name')" />
+            <div>
+                <wd:print wd:value="wd.v('r').field('text')" />
+            </div>
+            <div>
+                <wd:print wd:value="wd.v('r').field('text2')" />
+            </div>
+        </li></wd:for>
+    </ul>
+</wd:result>
+<hr />
+<form method="post">
+    <input type="hidden" name="action" value="bbs/post" />
+    <div class="bbs-form">
+        <div>
+            <label class="mdc-text-field mdc-text-field--outlined">
+                <span class="mdc-notched-outline">
+                    <span class="mdc-notched-outline__leading"></span>
+                    <span class="mdc-notched-outline__notch">
+                        <span class="mdc-floating-label" id="name">お名前</span>
+                    </span>
+                    <span class="mdc-notched-outline__trailing"></span>
+                </span>
+                <input class="mdc-text-field__input" type="text" name="name" aria-labelledby="name" />
+            </label>
+        </div>
+        <div>
+            <label class="mdc-text-field mdc-text-field--outlined mdc-text-field--textarea mdc-text-field--no-label">
+                <span class="mdc-notched-outline">
+                    <span class="mdc-notched-outline__leading"></span>
+                    <span class="mdc-notched-outline__notch">
+                        <span class="mdc-floating-label" id="name">本文</span>
+                    </span>
+                    <span class="mdc-notched-outline__trailing"></span>
+                </span>
+                <span class="mdc-text-field__resizer">
+                    <textarea class="mdc-text-field__input" name="text" rows="6" cols="40" aria-label="Label"></textarea>
+                </span>
+            </label>
+        </div>
+        <div>
+            <label class="mdc-text-field mdc-text-field--outlined mdc-text-field--textarea mdc-text-field--no-label">
+                <span class="mdc-notched-outline">
+                    <span class="mdc-notched-outline__leading"></span>
+                    <span class="mdc-notched-outline__notch">
+                        <span class="mdc-floating-label" id="name">本文２</span>
+                    </span>
+                    <span class="mdc-notched-outline__trailing"></span>
+                </span>
+                <span class="mdc-text-field__resizer">
+                    <textarea class="mdc-text-field__input" name="text2" rows="6" cols="40" aria-label="Label"></textarea>
+                </span>
+            </label>
+        </div>
+        <div>
+            <button class="mdc-button mdc-button--raised">
+                <span class="mdc-button__label">投稿</span>
+            </button>
+        </div>
+    </div>
+</form>

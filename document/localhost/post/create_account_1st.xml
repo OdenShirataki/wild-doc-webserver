@@ -1,0 +1,8 @@
+<wd:session name="creatre_account_1st">
+    <wd:update commit="1">
+        <collection name="admin">
+            <field name="id"><wd:print wd:value="wd.input.post.name" /></field>
+            <field name="password"><wd:print wd:value="wd.input.post.password" /></field>
+        </collection>
+    </wd:update>
+</wd:session>

@@ -1,0 +1,3 @@
+<wd>
+    <wd:include wd:src="'/post/'+wd.input.post['action']+'.xml'" />
+</wd>
