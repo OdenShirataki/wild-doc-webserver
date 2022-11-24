@@ -58,15 +58,19 @@ pub(super) async fn request(wd_host:String,wd_port:String,req: Request<Body>) ->
                     params_all.insert("headers".to_owned(),Param::Array(headers));
                     let json=serde_json::to_string(&params_all).unwrap();
                     if let Some(filename)=get_filename(&document_root,&host,&uri){
-                        if let Ok(b)=response::make(&mut wdc,&filename,&json){
-                            *response.body_mut()=b;
+                        if let Ok(r)=response::make(&mut wdc,&filename,&json){
+                            *response.body_mut()=Body::from(
+                                r.body().to_vec()
+                            );
                         }else{
                             *response.body_mut()=Body::from("error");
                         }
                     }else{
                         let filename=document_root.to_owned()+"/route.xml";
-                        if let Ok(b)=response::make(&mut wdc,&filename,&json){
-                            *response.body_mut()=b;
+                        if let Ok(r)=response::make(&mut wdc,&filename,&json){
+                            *response.body_mut()=Body::from(
+                                r.body().to_vec()
+                            );
                         }else{
                             *response.body_mut()=Body::from("error");
                         }
@@ -112,14 +116,18 @@ pub(super) async fn request(wd_host:String,wd_port:String,req: Request<Body>) ->
                     let _=wdc.exec(&xml,&json);
 
                     if let Some(filename)=get_filename(&document_root,&host,&uri){
-                        if let Ok(b)=response::make(&mut wdc,&filename,&json){
-                            *response.body_mut()=b;
+                        if let Ok(r)=response::make(&mut wdc,&filename,&json){
+                            *response.body_mut()=Body::from(
+                                r.body().to_vec()
+                            );
                         }else{
                             *response.body_mut()=Body::from("error");
                         }
                     }else{
-                        if let Ok(b)=response::make(&mut wdc,&(document_root.to_owned()+&host+"/route.xml"),&json){
-                            *response.body_mut()=b;
+                        if let Ok(r)=response::make(&mut wdc,&(document_root.to_owned()+&host+"/route.xml"),&json){
+                            *response.body_mut()=Body::from(
+                                r.body().to_vec()
+                            );
                         }else{
                             *response.body_mut()=Body::from("error");
                         }

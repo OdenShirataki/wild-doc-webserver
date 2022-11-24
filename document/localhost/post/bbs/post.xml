@@ -3,7 +3,6 @@
         <collection name="bbs">
             <field name="name"><wd:print wd:value="wd.input.post.name" /></field>
             <field name="text"><wd:print wd:value="wd.input.post.text" /></field>
-            <field name="text2"><wd:print wd:value="wd.input.post.text2" /></field>
         </collection>
     </wd:update>
 </wd:session>
