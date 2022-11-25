@@ -5,4 +5,7 @@
             <field name="password"><wd:print wd:value="wd.input.post.password" /></field>
         </collection>
     </wd:update>
-</wd:session>
+</wd:session><wd:script>
+    wd.result_options.headers={};
+    wd.result_options.headers['location']="/-db/?registered=1";
+</wd:script>

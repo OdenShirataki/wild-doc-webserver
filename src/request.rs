@@ -35,29 +35,37 @@ impl Serialize for Param {
     }
 }
 
-fn get(response:&mut Response<Body>,wdc:&mut WildDocClient,filename:&str,json:&str){
-    let mut f=File::open(filename).unwrap();
-    let mut xml=String::new();
-    f.read_to_string(&mut xml).unwrap();
-    if let Ok(r)=wdc.exec(&xml,json){
-        if let Ok(result_options)=serde_json::from_str::<HashMap<String,serde_json::Value>>(r.options_json()){
-            if let Some(headers)=result_options.get("headers"){
-                if let serde_json::Value::Object(headers)=headers{
-                    let mut response_headers=HeaderMap::new();
-                    for (k,v) in headers{
+fn headers_from_json(json:&str)->Option<HeaderMap>{
+    if let Ok(result_options)=serde_json::from_str::<HashMap<String,serde_json::Value>>(json){
+        if let Some(headers)=result_options.get("headers"){
+            if let serde_json::Value::Object(headers)=headers{
+                let mut response_headers=HeaderMap::new();
+                for (k,v) in headers{
+                    if let Some(v)=v.as_str(){
                         if let(
                             Ok(k)
                             ,Ok(v)
                         )=(
                             HeaderName::from_bytes(k.as_bytes())
-                            ,HeaderValue::from_str(&v.to_string())
+                            ,HeaderValue::from_str(v)
                         ){
                             response_headers.insert(k,v);
                         }
                     }
-                    *response.headers_mut()=response_headers;
                 }
+                return Some(response_headers);
             }
+        }
+    }
+    None
+}
+fn get(response:&mut Response<Body>,wdc:&mut WildDocClient,filename:&str,json:&str){
+    let mut f=File::open(filename).unwrap();
+    let mut xml=String::new();
+    f.read_to_string(&mut xml).unwrap();
+    if let Ok(r)=wdc.exec(&xml,json){
+        if let Some(headers)=headers_from_json(r.options_json()){
+            *response.headers_mut()=headers;
         }
         *response.body_mut()=Body::from(
             r.body().to_vec()
@@ -134,7 +142,16 @@ pub(super) async fn request(wd_host:String,wd_port:String,req: Request<Body>) ->
                     let mut xml=String::new();
                     f.read_to_string(&mut xml).unwrap();
 
-                    let _=wdc.exec(&xml,&json);
+                    if let Ok(result_post)=wdc.exec(&xml,&json){
+                        if let Some(headers)=headers_from_json(result_post.options_json()){
+                            *response.headers_mut()=headers;
+                            if response.headers().contains_key("location"){
+                                *response.status_mut()=StatusCode::SEE_OTHER;
+                                *response.body_mut()=Body::from("");
+                                return Ok(response);
+                            }
+                        }
+                    }
 
                     if let Some(filename)=get_filename(&document_root,&host,&uri){
                         get(&mut response,&mut wdc,&filename,&json);
