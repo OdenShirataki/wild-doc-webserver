@@ -13,7 +13,6 @@ use once_cell::sync::Lazy;
 
 mod tls;
 mod request;
-pub(crate) mod response;
 
 #[macro_use]
 extern crate serde_derive;

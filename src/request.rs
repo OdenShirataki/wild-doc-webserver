@@ -3,15 +3,15 @@ use std::{collections::HashMap, fs::File};
 use std::convert::Infallible;
 use bytes::Bytes;
 
-use hyper::{Request, Body, Response, Method, StatusCode};
+use hyper::header::HeaderName;
+use hyper::http::HeaderValue;
+use hyper::{Request, Body, Response, Method, StatusCode, HeaderMap};
 use url::form_urlencoded;
 use multer::Multipart;
 use futures::stream::once;
 use serde::{Serialize,Serializer, ser::SerializeMap};
 
 use wild_doc_client_lib::WildDocClient;
-
-use crate::response;
 
 enum Param{
     Array(HashMap<String,String>)
@@ -35,6 +35,37 @@ impl Serialize for Param {
     }
 }
 
+fn get(response:&mut Response<Body>,wdc:&mut WildDocClient,filename:&str,json:&str){
+    let mut f=File::open(filename).unwrap();
+    let mut xml=String::new();
+    f.read_to_string(&mut xml).unwrap();
+    if let Ok(r)=wdc.exec(&xml,json){
+        if let Ok(result_options)=serde_json::from_str::<HashMap<String,serde_json::Value>>(r.options_json()){
+            if let Some(headers)=result_options.get("headers"){
+                if let serde_json::Value::Object(headers)=headers{
+                    let mut response_headers=HeaderMap::new();
+                    for (k,v) in headers{
+                        if let(
+                            Ok(k)
+                            ,Ok(v)
+                        )=(
+                            HeaderName::from_bytes(k.as_bytes())
+                            ,HeaderValue::from_str(&v.to_string())
+                        ){
+                            response_headers.insert(k,v);
+                        }
+                    }
+                    *response.headers_mut()=response_headers;
+                }
+            }
+        }
+        *response.body_mut()=Body::from(
+            r.body().to_vec()
+        );
+    }else{
+        *response.body_mut()=Body::from("error");
+    }
+}
 pub(super) async fn request(wd_host:String,wd_port:String,req: Request<Body>) -> Result<Response<Body>, hyper::Error> {
     let mut response = Response::new(Body::empty());
 
@@ -50,6 +81,7 @@ pub(super) async fn request(wd_host:String,wd_port:String,req: Request<Body>) ->
             let document_root="document/".to_owned();
 
             let mut wdc=WildDocClient::new(&wd_host,&wd_port,&document_root,&host);
+
             let mut params_all:HashMap<String,Param>=HashMap::new();
             params_all.insert("uri".to_owned(),Param::Scalar(uri.to_owned()));
 
@@ -57,23 +89,12 @@ pub(super) async fn request(wd_host:String,wd_port:String,req: Request<Body>) ->
                 &Method::GET=>{
                     params_all.insert("headers".to_owned(),Param::Array(headers));
                     let json=serde_json::to_string(&params_all).unwrap();
+
                     if let Some(filename)=get_filename(&document_root,&host,&uri){
-                        if let Ok(r)=response::make(&mut wdc,&filename,&json){
-                            *response.body_mut()=Body::from(
-                                r.body().to_vec()
-                            );
-                        }else{
-                            *response.body_mut()=Body::from("error");
-                        }
+                        get(&mut response,&mut wdc,&filename,&json);
                     }else{
-                        let filename=document_root.to_owned()+"/route.xml";
-                        if let Ok(r)=response::make(&mut wdc,&filename,&json){
-                            *response.body_mut()=Body::from(
-                                r.body().to_vec()
-                            );
-                        }else{
-                            *response.body_mut()=Body::from("error");
-                        }
+                        let filename=document_root.to_owned()+&host+"/route.xml";
+                        get(&mut response,&mut wdc,&filename,&json);
                     }
                     let headers=response.headers_mut();
                     headers.append("content-type","text/html; charset=utf-8".parse().unwrap());
@@ -116,21 +137,10 @@ pub(super) async fn request(wd_host:String,wd_port:String,req: Request<Body>) ->
                     let _=wdc.exec(&xml,&json);
 
                     if let Some(filename)=get_filename(&document_root,&host,&uri){
-                        if let Ok(r)=response::make(&mut wdc,&filename,&json){
-                            *response.body_mut()=Body::from(
-                                r.body().to_vec()
-                            );
-                        }else{
-                            *response.body_mut()=Body::from("error");
-                        }
+                        get(&mut response,&mut wdc,&filename,&json);
                     }else{
-                        if let Ok(r)=response::make(&mut wdc,&(document_root.to_owned()+&host+"/route.xml"),&json){
-                            *response.body_mut()=Body::from(
-                                r.body().to_vec()
-                            );
-                        }else{
-                            *response.body_mut()=Body::from("error");
-                        }
+                        let filename=document_root.to_owned()+"route.xml";
+                        get(&mut response,&mut wdc,&filename,&json);
                     }
                     let headers=response.headers_mut();
                     headers.append("content-type","text/html; charset=utf-8".parse().unwrap());
