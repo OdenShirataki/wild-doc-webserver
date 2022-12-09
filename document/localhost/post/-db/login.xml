@@ -1,0 +1,14 @@
+<wd:script>
+    let uuid=crypto.randomUUID();
+    wd.general.session_id=uuid;
+    wd.general.session_name=uuid+'-login';
+</wd:script>
+<wd:session wd:name="wd.general.session_name">
+    <wd:update commit="0">
+        
+    </wd:update>
+</wd:session><wd:script>
+    wd.result_options.headers={};
+    //wd.result_options.headers['location']="/-db/";
+    
+</wd:script>

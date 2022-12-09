@@ -1,6 +1,0 @@
-<wd>
-    <wd:script>
-        wd.result_options.headers={};
-    </wd:script>
-    <wd:include wd:src="'/post/'+wd.input.post['action']+'.xml'" />
-</wd>

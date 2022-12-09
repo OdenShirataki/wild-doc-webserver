@@ -36,6 +36,7 @@ impl Serialize for Param {
 }
 
 fn headers_from_json(json:&str)->Option<HeaderMap>{
+    println!("{}",json);
     if let Ok(result_options)=serde_json::from_str::<HashMap<String,serde_json::Value>>(json){
         if let Some(headers)=result_options.get("headers"){
             if let serde_json::Value::Object(headers)=headers{
@@ -49,6 +50,7 @@ fn headers_from_json(json:&str)->Option<HeaderMap>{
                             HeaderName::from_bytes(k.as_bytes())
                             ,HeaderValue::from_str(v)
                         ){
+                            println!("{} : {:?}",k,v);
                             response_headers.insert(k,v);
                         }
                     }
@@ -59,21 +61,24 @@ fn headers_from_json(json:&str)->Option<HeaderMap>{
     }
     None
 }
-fn get(response:&mut Response<Body>,wdc:&mut WildDocClient,filename:&str,json:&str){
-    let mut f=File::open(filename).unwrap();
-    let mut xml=String::new();
-    f.read_to_string(&mut xml).unwrap();
-    if let Ok(r)=wdc.exec(&xml,json){
-        if let Some(headers)=headers_from_json(r.options_json()){
-            *response.headers_mut()=headers;
+
+fn get_static_filename(document_root:&str,hostname:&str,uri:&str)->Option<String>{
+    if uri.ends_with("/index.html")!=true{
+        let filename=document_root.to_owned()+hostname+"/static"+uri+&if uri.ends_with("/"){
+            "index.html"
+        }else{
+            ""
+        };
+        if std::path::Path::new(&filename).exists(){
+            Some(filename)
+        }else{
+            None
         }
-        *response.body_mut()=Body::from(
-            r.body().to_vec()
-        );
     }else{
-        *response.body_mut()=Body::from("error");
+        None
     }
 }
+
 pub(super) async fn request(wd_host:String,wd_port:String,req: Request<Body>) -> Result<Response<Body>, hyper::Error> {
     let mut response = Response::new(Body::empty());
 
@@ -88,62 +93,62 @@ pub(super) async fn request(wd_host:String,wd_port:String,req: Request<Body>) ->
             println!("request: {} {}",host,uri);
             let document_root="document/".to_owned();
 
-            let mut wdc=WildDocClient::new(&wd_host,&wd_port,&document_root,&host);
+            if let Some(static_file)=get_static_filename(&document_root,&host,&uri){
+                let mut f=File::open(static_file).unwrap();
+                let mut buf=Vec::new();
+                f.read_to_end(&mut buf).unwrap();
+                *response.body_mut()=Body::from(buf);
+            }else{
+                let mut wdc=WildDocClient::new(&wd_host,&wd_port,&document_root,&host);
 
-            let mut params_all:HashMap<String,Param>=HashMap::new();
-            params_all.insert("uri".to_owned(),Param::Scalar(uri.to_owned()));
+                let mut params_all:HashMap<String,Param>=HashMap::new();
+                params_all.insert("uri".to_owned(),Param::Scalar(uri.to_owned()));
 
-            match req.method(){
-                &Method::GET=>{
-                    params_all.insert("headers".to_owned(),Param::Array(headers));
-                    let json=serde_json::to_string(&params_all).unwrap();
-
-                    if let Some(filename)=get_filename(&document_root,&host,&uri){
-                        get(&mut response,&mut wdc,&filename,&json);
-                    }else{
-                        let filename=document_root.to_owned()+&host+"/route.xml";
-                        get(&mut response,&mut wdc,&filename,&json);
+                let json=match req.method(){
+                    &Method::GET=>{
+                        params_all.insert("headers".to_owned(),Param::Array(headers));
+                        Some(serde_json::to_string(&params_all))
                     }
-                    let headers=response.headers_mut();
-                    headers.append("content-type","text/html; charset=utf-8".parse().unwrap());
-                }
-                ,&Method::POST=>{
-                    let content_type=headers.get("content-type").unwrap();
-                    let body = hyper::body::to_bytes(req.into_body()).await?;
-                    let params={
-                        if content_type=="application/x-www-form-urlencoded"{
-                            form_urlencoded::parse(body.as_ref())
-                                .into_owned()
-                                .collect::<HashMap<String, String>>()
-                        }else if content_type.starts_with("multipart/form-data;"){
-                            let mut params:HashMap<String, String>=HashMap::new();
-                            let boundary:Vec<&str>=content_type.split("boundary=").collect();
-                            let boundary=boundary[1];
-                            let mut multipart = Multipart::new(once(async move { Result::<Bytes, Infallible>::Ok(Bytes::from(body)) }),boundary);
-                            while let Some(mut field) = multipart.next_field().await.unwrap() {
-                                //let file_name = field.file_name();
-                                while let Some(chunk)=field.chunk().await.unwrap() {
-                                    if let Some(name)=field.name(){
-                                        params.insert(name.to_owned(),std::str::from_utf8(&chunk).unwrap().to_owned());
+                    ,&Method::POST=>{
+                        let content_type=headers.get("content-type").unwrap();
+                        let body = hyper::body::to_bytes(req.into_body()).await?;
+                        let params={
+                            if content_type=="application/x-www-form-urlencoded"{
+                                form_urlencoded::parse(body.as_ref())
+                                    .into_owned()
+                                    .collect::<HashMap<String, String>>()
+                            }else if content_type.starts_with("multipart/form-data;"){
+                                let mut params:HashMap<String, String>=HashMap::new();
+                                let boundary:Vec<&str>=content_type.split("boundary=").collect();
+                                let boundary=boundary[1];
+                                let mut multipart = Multipart::new(once(async move { Result::<Bytes, Infallible>::Ok(Bytes::from(body)) }),boundary);
+                                while let Some(mut field) = multipart.next_field().await.unwrap() {
+                                    while let Some(chunk)=field.chunk().await.unwrap() {
+                                        if let Some(name)=field.name(){
+                                            params.insert(name.to_owned(),std::str::from_utf8(&chunk).unwrap().to_owned());
+                                        }
                                     }
                                 }
+                                params
+                            }else{
+                                HashMap::new()
                             }
-                            params
-                        }else{
-                            HashMap::new()
-                        }
-                    };
-                    
-                    params_all.insert("post".to_owned(),Param::Array(params));
-                    params_all.insert("headers".to_owned(),Param::Array(headers));
-                    let json=serde_json::to_string(&params_all).unwrap();
-
-                    let mut f=File::open(&(document_root.to_owned()+&host+"/post.xml")).unwrap();
+                        };
+                        params_all.insert("post".to_owned(),Param::Array(params));
+                        params_all.insert("headers".to_owned(),Param::Array(headers));
+                        Some(serde_json::to_string(&params_all))
+                    }
+                    ,_ => {
+                        None
+                    }
+                };
+                if let Some(Ok(json))=json{
+                    let filename=document_root.to_owned()+&host+"/request.xml";
+                    let mut f=File::open(filename).unwrap();
                     let mut xml=String::new();
                     f.read_to_string(&mut xml).unwrap();
-
-                    if let Ok(result_post)=wdc.exec(&xml,&json){
-                        if let Some(headers)=headers_from_json(result_post.options_json()){
+                    if let Ok(r)=wdc.exec(&xml,&json){
+                        if let Some(headers)=headers_from_json(r.options_json()){
                             *response.headers_mut()=headers;
                             if response.headers().contains_key("location"){
                                 *response.status_mut()=StatusCode::SEE_OTHER;
@@ -151,40 +156,17 @@ pub(super) async fn request(wd_host:String,wd_port:String,req: Request<Body>) ->
                                 return Ok(response);
                             }
                         }
-                    }
-
-                    if let Some(filename)=get_filename(&document_root,&host,&uri){
-                        get(&mut response,&mut wdc,&filename,&json);
+                        *response.body_mut()=Body::from(
+                            r.body().to_vec()
+                        );
                     }else{
-                        let filename=document_root.to_owned()+"route.xml";
-                        get(&mut response,&mut wdc,&filename,&json);
+                        *response.body_mut()=Body::from("error");
                     }
-                    let headers=response.headers_mut();
-                    headers.append("content-type","text/html; charset=utf-8".parse().unwrap());
-                }
-                ,_ => {
+                }else{
                     *response.status_mut() = StatusCode::NOT_FOUND;
                 }
-            };
+            }
         }
     }
-    
     Ok(response)
-}
-
-fn get_filename(document_root:&str,hostname:&str,uri:&str)->Option<String>{
-    if uri.ends_with("/index.html")!=true{
-        let filename=document_root.to_owned()+hostname+"/public"+uri+&if uri.ends_with("/"){
-            "index.html"
-        }else{
-            ""
-        };
-        if std::path::Path::new(&filename).exists(){
-            Some(filename)
-        }else{
-            None
-        }
-    }else{
-        None
-    }
 }
