@@ -1,4 +1,9 @@
-<wd:session name="creatre_account_1st">
+<wd:search
+    name="admin"
+    collection="admin"
+></wd:search><wd:result var="admin" search="admin"><wd:case
+    wd:value="wd.v('admin').length==0"
+><wd:when wd:value="true"><wd:session name="creatre_account_1st">
     <wd:update commit="1">
         <collection name="admin">
             <field name="id"><wd:print wd:value="wd.input.post.name" /></field>
@@ -6,6 +11,5 @@
         </collection>
     </wd:update>
 </wd:session><wd:script>
-    wd.result_options.headers={};
     wd.result_options.headers['location']="/-db/?registered=1";
-</wd:script>
+</wd:script></wd:when></wd:case></wd:result>

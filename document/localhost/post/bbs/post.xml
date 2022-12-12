@@ -1,4 +1,4 @@
-<wd:session name="creatre_account_1st">
+<wd:session name="bbs">
     <wd:update commit="1">
         <collection name="bbs">
             <field name="name"><wd:print wd:value="wd.input.post.name" /></field>

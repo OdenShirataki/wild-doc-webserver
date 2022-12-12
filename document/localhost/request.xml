@@ -2,34 +2,38 @@
     wd.result_options.headers={
         "content-type":"text/html; charset=utf-8"
     };
-    wd.general.cookie=((cookie)=>{
-        let r=new Object();
-        cookie.split(';').forEach(d=>{
-            d=d.split('=');
-            r[d[0]]=d[1];
-        });
-        return r;
-    })(wd.input.headers['cookie']);
+    if(wd.input.headers['cookie']){
+        wd.general.cookie=((cookie)=>{
+            let r=new Object();
+            cookie.split(';').forEach(d=>{
+                d=d.split('=');
+                r[d[0]]=d[1];
+            });
+            return r;
+        })(wd.input.headers['cookie']);
+    }else{
+        wd.general.cookie=new Object();
+    }
     wd.general.get_cookie=(key)=>{
         return wd.general.cookie[key];
     };
     wd.general.session_id=()=>{
         const session_id=wd.general.get_cookie('WDSESSID');
-        if(session_id.length>0){
+        if(session_id!==void 0 && session_id.length>0){
             return session_id;
         }else{
-            const session_id=crypto.randomUUID();
-            wd.result_options.headers['Set-Cookie']="WDSESSID="+uuid+"; path=/; secure";
-            return session_id;
+            const new_session_id=crypto.randomUUID();
+            wd.result_options.headers['Set-Cookie']="WDSESSID="+new_session_id+"; path=/; secure";
+            return new_session_id;
         }
     };
-</wd:script><wd:if
-    wd:value="wd.general.input.post"
-><wd:include wd:src="'/post/'+wd.input.post['action']+'.xml'" /></wd:if><wd:if
-    wd:value="wd.general.result_option.headers['location']!=void 0"
-><wd:script>
+</wd:script><wd:case
+    wd:value="wd.input.post!==void 0"
+><wd:when wd:value="true"><wd:include wd:src="'/post/'+wd.input.post['action']+'.xml'" /></wd:when></wd:case><wd:case
+    wd:value="wd.result_options.headers['location']===void 0"
+><wd:when wd:value="true"><wd:script>
     wd.general.uri='/doc'+wd.input.uri;
     if(wd.general.uri.match(/\/$/)){
         wd.general.uri+="index.html";
     }
-</wd:script><wd:include wd:src="wd.general.uri" /></wd:if></wd>
+</wd:script><wd:include wd:src="wd.general.uri" /></wd:when></wd:case></wd>

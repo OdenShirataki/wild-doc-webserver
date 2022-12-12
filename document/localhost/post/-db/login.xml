@@ -1,14 +1,19 @@
-<wd:script>
-    let uuid=crypto.randomUUID();
-    wd.general.session_id=uuid;
-    wd.general.session_name=uuid+'-login';
-</wd:script>
-<wd:session wd:name="wd.general.session_name">
-    <wd:update commit="0">
-        
-    </wd:update>
-</wd:session><wd:script>
-    wd.result_options.headers={};
-    //wd.result_options.headers['location']="/-db/";
-    
-</wd:script>
+<wd:search name="admin" collection="admin">
+    <field name="id" method="match" wd:value="wd.input.post['id']" />
+    <field name="password" method="match" wd:value="wd.input.post['password']" />
+</wd:search><wd:result var="admin" search="admin">
+    <wd:if wd:value="wd.v('admin').length>0"><wd:for var="r" index="i" wd:in="wd.v('admin')">
+        <wd:script>
+            wd.result_options.headers['location']="/-db/?loggedin";
+            console.log(wd.general.session_id);
+            wd.general.session_name=wd.general.session_id()+'-login';
+            console.log(wd.general.session_name);
+        </wd:script><wd:session wd:name="wd.general.session_name">
+            <wd:update commit="0">
+                <collection name="login">
+                    <field name="id"><wd:print wd:value="wd.v('r').row" /></field>
+                </collection>
+            </wd:update>
+        </wd:session>
+    </wd:for></wd:if>
+</wd:result>
