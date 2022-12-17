@@ -5,13 +5,11 @@
     <wd:if wd:value="wd.v('admin').length>0"><wd:for var="r" index="i" wd:in="wd.v('admin')">
         <wd:script>
             wd.result_options.headers['location']="/-db/?loggedin";
-            console.log(wd.general.session_id);
             wd.general.session_name=wd.general.session_id()+'-login';
-            console.log(wd.general.session_name);
         </wd:script><wd:session wd:name="wd.general.session_name">
             <wd:update commit="0">
                 <collection name="login">
-                    <field name="id"><wd:print wd:value="wd.v('r').row" /></field>
+                    <depend key="admin" collection="admin" wd:row="wd.v('r').row" />
                 </collection>
             </wd:update>
         </wd:session>

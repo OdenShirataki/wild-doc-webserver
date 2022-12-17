@@ -1,6 +1,10 @@
 <wd:session wd:name="wd.general.session_name"><wd:search name="login" collection="login">
 </wd:search><wd:result var="login" search="login"><wd:for var="r" index="i" wd:in="wd.v('login')">
-    <wd:print wd:value="wd.v('r').row" /> : <wd:print wd:value="wd.v('r').field('id')" />
+    <wd:for var="depend" index="i" wd:in="wd.v('r').depends('admin')"><wd:search name="admin" wd:collection="wd.v('depend').collection">
+        <row method="in" wd:value="wd.v('depend').row" />
+    </wd:search><wd:result var="admin" search="admin"><wd:for var="r" index="i" wd:in="wd.v('admin')">
+        logged in account=<wd:print wd:value="wd.v('r').field('id')" />
+    </wd:for></wd:result></wd:for>
 </wd:for></wd:result></wd:session>
 
 <form method="post">
