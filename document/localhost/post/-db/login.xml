@@ -10,6 +10,7 @@
             <wd:update commit="0">
                 <collection name="login">
                     <depend key="admin" collection="admin" wd:row="wd.v('r').row" />
+                    <field name="action">login</field>
                 </collection>
             </wd:update>
         </wd:session>

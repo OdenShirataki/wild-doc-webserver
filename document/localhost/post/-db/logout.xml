@@ -1,6 +1,7 @@
 <wd:script>
+    wd.result_options.headers['location']="/-db/?loggedout";
     wd.general.session_name=wd.general.session_id()+'-login';
-</wd:script><wd:session wd:name="wd.general.session_name"><wd:search name="login" collection="login">
-</wd:search><wd:result var="login" search="login"><wd:for var="r" index="i" wd:in="wd.v('login')">
-    <wd:print wd:value="wd.v('r').row" /> : <wd:print wd:value="wd.v('r').field('id')" />
-</wd:for></wd:result></wd:session>
+</wd:script><wd:session
+    wd:name="wd.general.session_name"
+    clear_on_close="true"
+></wd:session>
