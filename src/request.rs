@@ -7,7 +7,6 @@ use multer::Multipart;
 use std::convert::Infallible;
 use std::io::Read;
 use std::{collections::HashMap, fs::File};
-use url::form_urlencoded;
 
 use wild_doc_client_lib::WildDocClient;
 
@@ -50,6 +49,17 @@ fn get_static_filename(document_root: &str, hostname: &str, uri: &str) -> Option
     }
 }
 
+#[derive(Serialize)]
+struct UploadFile {
+    file_name: String,
+    content_type: String,
+    len: usize,
+    data: String,
+}
+struct UploadFileWrapper {
+    key: String,
+    file: UploadFile,
+}
 pub(super) async fn request(
     wd_host: String,
     wd_port: String,
@@ -85,79 +95,110 @@ pub(super) async fn request(
                     }
                 }
 
-                let ref json = match req.method() {
+                let mut files = vec![];
+                let params_all = match req.method() {
                     &Method::GET => {
                         if let Ok(headers) = serde_json::to_string(&headers) {
                             if let Ok(headers) = serde_json::from_str(&headers) {
                                 params_all.insert("headers".to_owned(), headers);
                             }
                         }
-                        Some(serde_json::to_string(&params_all))
+                        Some(params_all)
                     }
                     &Method::POST => {
                         let content_type = headers.get("content-type").unwrap();
                         let body = hyper::body::to_bytes(req.into_body()).await?;
-                        let params = {
-                            if content_type == "application/x-www-form-urlencoded" {
-                                form_urlencoded::parse(body.as_ref())
-                                    .into_owned()
-                                    .collect::<HashMap<String, String>>()
-                            } else if content_type.starts_with("multipart/form-data;") {
-                                let mut params: HashMap<String, String> = HashMap::new();
-                                let boundary: Vec<&str> = content_type.split("boundary=").collect();
-                                let boundary = boundary[1];
-                                let mut multipart = Multipart::new(
-                                    once(async move {
-                                        Result::<Bytes, Infallible>::Ok(Bytes::from(body))
-                                    }),
-                                    boundary,
-                                );
-                                while let Some(mut field) = multipart.next_field().await.unwrap() {
-                                    while let Some(chunk) = field.chunk().await.unwrap() {
-                                        if let Some(name) = field.name() {
-                                            params.insert(
-                                                name.to_owned(),
-                                                std::str::from_utf8(&chunk).unwrap().to_owned(),
-                                            );
+
+                        if content_type == "application/x-www-form-urlencoded" {
+                            if let Ok(body) = std::str::from_utf8(body.as_ref()) {
+                                if let Ok(params) = queryst::parse(body) {
+                                    params_all.insert("post".to_owned(), params);
+                                }
+                            }
+                        } else if content_type.starts_with("multipart/form-data;") {
+                            let boundary: Vec<&str> = content_type.split("boundary=").collect();
+                            let boundary = boundary[1];
+                            let mut multipart = Multipart::new(
+                                once(async move { Result::<Bytes, Infallible>::Ok(body) }),
+                                boundary,
+                            );
+                            let mut params = "".to_owned();
+                            while let Some(mut field) = multipart.next_field().await.unwrap() {
+                                while let Some(chunk) = field.chunk().await.unwrap() {
+                                    if let Some(name) = field.name() {
+                                        if let (Some(file_name), Some(content_type)) =
+                                            (field.file_name(), field.content_type())
+                                        {
+                                            if params.len() > 0 {
+                                                params += "&";
+                                            }
+                                            let key = boundary.to_owned()
+                                                + "-"
+                                                + &files.len().to_string();
+                                            params += &urlencoding::encode(name).into_owned();
+                                            params += "=";
+                                            params += &key;
+                                            files.push(UploadFileWrapper {
+                                                key,
+                                                file: UploadFile {
+                                                    file_name: file_name.to_owned(),
+                                                    content_type: content_type.to_string(),
+                                                    len: chunk.len(),
+                                                    data: base64::encode(chunk),
+                                                },
+                                            });
+                                        } else {
+                                            if let Ok(v) = std::str::from_utf8(&chunk) {
+                                                if params.len() > 0 {
+                                                    params += "&";
+                                                }
+                                                params += &urlencoding::encode(name).into_owned();
+                                                params += "=";
+                                                params += &urlencoding::encode(v).into_owned();
+                                            }
                                         }
                                     }
                                 }
-                                params
-                            } else {
-                                HashMap::new()
                             }
-                        };
-                        if let Ok(params) = serde_json::to_string(&params) {
-                            if let Ok(params) = serde_json::from_str(&params) {
-                                params_all.insert("post".to_owned(), params);
+                            if let Ok(params) = queryst::parse(&params) {
+                                params_all.insert("postest".to_owned(), params);
                             }
                         }
+
                         if let Ok(headers) = serde_json::to_string(&headers) {
                             if let Ok(headers) = serde_json::from_str(&headers) {
                                 params_all.insert("headers".to_owned(), headers);
                             }
                         }
-                        Some(serde_json::to_string(&params_all))
+                        Some(params_all)
                     }
                     _ => None,
                 };
-                if let Some(Ok(json)) = json {
-                    let filename = document_root.to_owned() + &host + "/request.xml";
-                    let mut f = File::open(filename).unwrap();
-                    let mut xml = String::new();
-                    f.read_to_string(&mut xml).unwrap();
-                    if let Ok(r) = wdc.exec(&xml, &json) {
-                        if let Some(headers) = headers_from_json(r.options_json()) {
-                            *response.headers_mut() = headers;
-                            if response.headers().contains_key("location") {
-                                *response.status_mut() = StatusCode::SEE_OTHER;
-                                *response.body_mut() = Body::from("");
-                                return Ok(response);
+                if let Some(params_all) = params_all {
+                    if let Ok(mut json) = serde_json::to_string(&params_all) {
+                        for f in files {
+                            if let Ok(file) = serde_json::to_string(&f.file) {
+                                let key = "\"".to_string() + &f.key + "\"";
+                                json = json.replace(&key, &file);
                             }
                         }
-                        *response.body_mut() = Body::from(r.body().to_vec());
-                    } else {
-                        *response.body_mut() = Body::from("error");
+                        let filename = document_root.to_owned() + &host + "/request.xml";
+                        let mut f = File::open(filename).unwrap();
+                        let mut xml = String::new();
+                        f.read_to_string(&mut xml).unwrap();
+                        if let Ok(r) = wdc.exec(&xml, &json) {
+                            if let Some(headers) = headers_from_json(r.options_json()) {
+                                *response.headers_mut() = headers;
+                                if response.headers().contains_key("location") {
+                                    *response.status_mut() = StatusCode::SEE_OTHER;
+                                    *response.body_mut() = Body::from("");
+                                    return Ok(response);
+                                }
+                            }
+                            *response.body_mut() = Body::from(r.body().to_vec());
+                        } else {
+                            *response.body_mut() = Body::from("error");
+                        }
                     }
                 } else {
                     *response.status_mut() = StatusCode::NOT_FOUND;

@@ -1,0 +1,24 @@
+<div class="layout-normal">
+    <form method="post" enctype="multipart/form-data">
+        <input type="hidden" name="hoge[]" value="1" />
+        <input type="hidden" name="hoge[]" value="2" />
+        <input type="hidden" name="action" value="-db/create_admin" />
+        <div>
+            <wd:stack var="type:'text',name:'name',label:'Name',value:wd.input && wd.input.post ? wd.input.post.name : ''">
+                <wd:include src="/include/material/text_field.html" />
+            </wd:stack>
+        </div>
+        <div>
+            <wd:stack var="type:'password',name:'password',label:'Password',value:wd.input && wd.input.post ? wd.input.post.password : ''">
+                <wd:include src="/include/material/text_field.html" />
+            </wd:stack>
+        </div>
+        <input type="file" name="file" />
+        <div>
+            <button class="mdc-button mdc-button--raised">
+                <span class="mdc-button__label">create administrator account</span>
+            </button>
+        </div>
+    </form>
+    
+</div>

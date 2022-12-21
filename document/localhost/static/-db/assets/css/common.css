@@ -14,13 +14,23 @@ body {
     box-sizing: border-box;
 }
 
-.fab-corner{
-    position: absolute;
-    right:16px;
-    bottom:16px;
+.data-table-wrapper {
+    position: relative;
 }
 
-.layout-normal{
+.data-table-wrapper .mdc-fab {
+    position: absolute;
+    bottom: -20px;
+    margin-left: -18px;
+}
+
+.fab-corner {
+    position: absolute;
+    right: 16px;
+    bottom: 16px;
+}
+
+.layout-normal {
     padding: 10px;
 }
 
