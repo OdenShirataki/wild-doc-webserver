@@ -1,39 +1,15 @@
 use bytes::Bytes;
-use std::convert::Infallible;
-use std::io::Read;
-use std::{collections::HashMap, fs::File};
-
 use futures::stream::once;
 use hyper::header::HeaderName;
 use hyper::http::HeaderValue;
 use hyper::{Body, HeaderMap, Method, Request, Response, StatusCode};
 use multer::Multipart;
-use serde::{ser::SerializeMap, Serialize, Serializer};
+use std::convert::Infallible;
+use std::io::Read;
+use std::{collections::HashMap, fs::File};
 use url::form_urlencoded;
 
 use wild_doc_client_lib::WildDocClient;
-
-enum Param {
-    Array(HashMap<String, String>),
-    Scalar(String),
-}
-impl Serialize for Param {
-    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-    where
-        S: Serializer,
-    {
-        match self {
-            Self::Array(array) => {
-                let mut map = serializer.serialize_map(Some(array.len()))?;
-                for (k, v) in array {
-                    map.serialize_entry(k, v)?;
-                }
-                map.end()
-            }
-            Self::Scalar(string) => serializer.serialize_str(string),
-        }
-    }
-}
 
 fn headers_from_json(json: &str) -> Option<HeaderMap> {
     if let Ok(result_options) = serde_json::from_str::<HashMap<String, serde_json::Value>>(json) {
@@ -99,12 +75,23 @@ pub(super) async fn request(
             } else {
                 let mut wdc = WildDocClient::new(&wd_host, &wd_port, &document_root, &host);
 
-                let mut params_all: HashMap<String, Param> = HashMap::new();
-                params_all.insert("uri".to_owned(), Param::Scalar(uri.to_owned()));
+                let mut params_all: HashMap<String, serde_json::Value> = HashMap::new();
 
-                let json = match req.method() {
+                params_all.insert("uri".to_owned(), serde_json::Value::String(uri));
+
+                if let Some(query) = req.uri().query() {
+                    if let Ok(query) = queryst::parse(query) {
+                        params_all.insert("get".to_owned(), query);
+                    }
+                }
+
+                let ref json = match req.method() {
                     &Method::GET => {
-                        params_all.insert("headers".to_owned(), Param::Array(headers));
+                        if let Ok(headers) = serde_json::to_string(&headers) {
+                            if let Ok(headers) = serde_json::from_str(&headers) {
+                                params_all.insert("headers".to_owned(), headers);
+                            }
+                        }
                         Some(serde_json::to_string(&params_all))
                     }
                     &Method::POST => {
@@ -140,8 +127,16 @@ pub(super) async fn request(
                                 HashMap::new()
                             }
                         };
-                        params_all.insert("post".to_owned(), Param::Array(params));
-                        params_all.insert("headers".to_owned(), Param::Array(headers));
+                        if let Ok(params) = serde_json::to_string(&params) {
+                            if let Ok(params) = serde_json::from_str(&params) {
+                                params_all.insert("post".to_owned(), params);
+                            }
+                        }
+                        if let Ok(headers) = serde_json::to_string(&headers) {
+                            if let Ok(headers) = serde_json::from_str(&headers) {
+                                params_all.insert("headers".to_owned(), headers);
+                            }
+                        }
                         Some(serde_json::to_string(&params_all))
                     }
                     _ => None,

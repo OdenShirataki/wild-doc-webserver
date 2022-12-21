@@ -1,0 +1,39 @@
+<div class="layout-normal">
+    <div class="mdc-data-table">
+        <div class="mdc-data-table__table-container">
+            <table class="mdc-data-table__table" aria-label="Dessert calories">
+                <thead>
+                    <tr class="mdc-data-table__header-row">
+                        <th class="mdc-data-table__header-cell" role="columnheader" scope="col">Row</th>
+                        <th class="mdc-data-table__header-cell mdc-data-table__header-cell--numeric" role="columnheader"
+                            scope="col">Create Date</th>
+                        <th class="mdc-data-table__header-cell mdc-data-table__header-cell--numeric" role="columnheader"
+                            scope="col">Name</th>
+                    </tr>
+                </thead>
+                <tbody class="mdc-data-table__content">
+                    <wd:search name="admin" collection="admin"></wd:search>
+                    <wd:result var="admin" search="admin">
+                        <wd:for var="admin" wd:in="wd.v('admin')">
+                            <tr class="mdc-data-table__row">
+                                <th class="mdc-data-table__cell" scope="row">
+                                    <wd:print wd:value="wd.v('admin').row" />
+                                </th>
+                                <td class="mdc-data-table__cell mdc-data-table__cell--numeric">
+                                    <wd:print wd:value="wd.v('admin').term_begin.toLocaleString()" />
+                                </td>
+                                <td class="mdc-data-table__cell mdc-data-table__cell--numeric">
+                                    <wd:print wd:value="wd.v('admin').field('name')" />
+                                </td>
+                            </tr>
+                        </wd:for>
+                    </wd:result>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+<a href="/-db/settings/admin/edit/*/" class="mdc-fab fab-corner">
+    <div class="mdc-fab__ripple"></div>
+    <span class="material-icons mdc-fab__icon">add</span>
+</a>

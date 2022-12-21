@@ -2,28 +2,14 @@
     <input type="hidden" name="action" value="-db/login" />
     <div class="login-form">
         <div>
-            <label class="mdc-text-field mdc-text-field--outlined">
-                <span class="mdc-notched-outline">
-                <span class="mdc-notched-outline__leading"></span>
-                <span class="mdc-notched-outline__notch">
-                    <span class="mdc-floating-label">Name</span>
-                </span>
-                <span class="mdc-notched-outline__trailing"></span>
-                </span>
-                <input class="mdc-text-field__input" type="text" name="id" aria-labelledby="id" wd:value="wd.input.post.id" />
-            </label>
+            <wd:stack var="type:'text',name:'name',label:'Name',value:wd.input && wd.input.post ? wd.input.post.id : ''">
+                <wd:include src="/include/material/text_field.html" />
+            </wd:stack>
         </div>
         <div>
-            <label class="mdc-text-field mdc-text-field--outlined">
-                <span class="mdc-notched-outline">
-                <span class="mdc-notched-outline__leading"></span>
-                <span class="mdc-notched-outline__notch">
-                    <span class="mdc-floating-label">Password</span>
-                </span>
-                <span class="mdc-notched-outline__trailing"></span>
-                </span>
-                <input class="mdc-text-field__input" type="text" name="password" aria-labelledby="password" wd:value="wd.input.post.password" />
-            </label>
+            <wd:stack var="type:'password',name:'password',label:'Password',value:wd.input && wd.input.post ? wd.input.post.password : ''">
+                <wd:include src="/include/material/text_field.html" />
+            </wd:stack>
         </div>
         <div>
             <button class="mdc-button mdc-button--raised">

@@ -3,7 +3,7 @@
 </wd:script><wd:case wd:value="wd.general.exists_admin_account"><wd:when
     wd:value="false"
 ><wd:stack
-    var="body_path:'/include/-db/_layout/make_account.html'"
+    var="content_path:'/include/-db/_layout/make_account.html',addtional_css:['/-db/assets/css/make_account.css']"
 ><wd:include src="/include/-db/_layout/html.html" /></wd:stack></wd:when><wd:else><wd:script>
     wd.general.session_name=wd.general.session_id()+'-login';
 </wd:script><wd:session
@@ -13,5 +13,5 @@
 ><wd:case wd:value="wd.v('login').length>0"><wd:when
     wd:value="true"
 ><wd:include src="/include/-db/_layout/html.html" /></wd:when><wd:else><wd:stack
-    var="body_path:'/include/-db/_layout/login_form.html',addtional_css:['/-db/assets/css/login.css']"
+    var="content_path:'/include/-db/_layout/login_form.html',addtional_css:['/-db/assets/css/login.css']"
 ><wd:include src="/include/-db/_layout/html.html" /></wd:stack></wd:else></wd:case></wd:result></wd:else></wd:case>

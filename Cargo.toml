@@ -1,6 +1,6 @@
 [package]
 name = "wild-doc-webserver"
-version = "0.0.14"
+version = "0.0.15"
 edition = "2021"
 
 authors = ["Oden Shirataki <oden.srtk@gmail.com>"]
@@ -31,4 +31,5 @@ url="2"
 futures = "0.3"
 bytes = "1.2.1"
 multer = "2"
+queryst = "2"
 wild-doc-client-lib={version="0",path="../wild-doc-client-lib"}

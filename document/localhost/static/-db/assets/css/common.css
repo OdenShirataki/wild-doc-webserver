@@ -1,0 +1,32 @@
+body {
+    margin: 0;
+}
+
+.mdc-top-app-bar {
+    z-index: 7;
+}
+
+.mdc-drawer-app-content {
+    flex: auto;
+    overflow: auto;
+    position: relative;
+    height: 100%;
+    box-sizing: border-box;
+}
+
+.fab-corner{
+    position: absolute;
+    right:16px;
+    bottom:16px;
+}
+
+.layout-normal{
+    padding: 10px;
+}
+
+.logout {
+    display: block;
+    width: 100%;
+    text-align: center;
+    margin-top: 16px;
+}

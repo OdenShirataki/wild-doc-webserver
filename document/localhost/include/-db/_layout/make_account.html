@@ -1,11 +1,3 @@
-<style>
-    form{
-        display:flex;
-        flex-direction:column;
-        gap:20px;
-        margin-top:20px;
-    }
-</style>
 <div>
     <p>Administrator account does not exist.</p>
     <p>Please create an administrator account.</p>
@@ -13,28 +5,14 @@
 <form method="post">
     <input type="hidden" name="action" value="-db/create_account_1st" />
     <div>
-        <label class="mdc-text-field mdc-text-field--outlined">
-            <span class="mdc-notched-outline">
-            <span class="mdc-notched-outline__leading"></span>
-            <span class="mdc-notched-outline__notch">
-                    <span class="mdc-floating-label" id="name">Name</span>
-            </span>
-            <span class="mdc-notched-outline__trailing"></span>
-            </span>
-            <input class="mdc-text-field__input" type="text" name="name" aria-labelledby="name" wd:value="wd.input.post.name" />
-        </label>
+        <wd:stack var="type:'text',name:'name',label:'Name',value:wd.input && wd.input.post ? wd.input.post.name : ''">
+            <wd:include src="/include/material/text_field.html" />
+        </wd:stack>
     </div>
     <div>
-        <label class="mdc-text-field mdc-text-field--outlined">
-            <span class="mdc-notched-outline">
-            <span class="mdc-notched-outline__leading"></span>
-            <span class="mdc-notched-outline__notch">
-                    <span class="mdc-floating-label" id="password">Password</span>
-            </span>
-            <span class="mdc-notched-outline__trailing"></span>
-            </span>
-            <input class="mdc-text-field__input" type="text" name="password" aria-labelledby="password" wd:value="wd.input.post.password" />
-        </label>
+        <wd:stack var="type:'password',name:'password',label:'Password',value:wd.input && wd.input.post ? wd.input.post.password : ''">
+            <wd:include src="/include/material/text_field.html" />
+        </wd:stack>
     </div>
     <div>
         <button class="mdc-button mdc-button--raised">

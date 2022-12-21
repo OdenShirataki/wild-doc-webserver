@@ -1,8 +1,8 @@
 <wd:search name="admin" collection="admin">
-    <field name="id" method="match" wd:value="wd.input.post['id']" />
+    <field name="name" method="match" wd:value="wd.input.post['name']" />
     <field name="password" method="match" wd:value="wd.input.post['password']" />
 </wd:search><wd:result var="admin" search="admin">
-    <wd:if wd:value="wd.v('admin').length>0"><wd:for var="r" index="i" wd:in="wd.v('admin')">
+    <wd:if wd:value="wd.v('admin').length>0"><wd:for var="r" wd:in="wd.v('admin')">
         <wd:script>
             wd.result_options.headers['location']="/-db/?loggedin";
             wd.general.session_name=wd.general.session_id()+'-login';

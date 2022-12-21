@@ -1,4 +1,5 @@
 <wd><wd:script>
+    console.log(wd.input);
     wd.result_options.headers={
         "content-type":"text/html; charset=utf-8"
     };
