@@ -1,8 +1,10 @@
-<wd:session name="creatre_admin">
+<wd:session name="admin">
     <wd:update commit="1">
-        <collection name="admin">
+        <collection name="admin" wd:row="wd.input.post.row" wd:delete="wd.input.post.delete">
             <field name="name"><wd:print wd:value="wd.input.post.name" /></field>
             <field name="password"><wd:print wd:value="wd.input.post.password" /></field>
         </collection>
     </wd:update>
-</wd:session>
+</wd:session><wd:script>
+    wd.result_options.headers['location']="/-db/settings/admin/";
+</wd:script>

@@ -6,10 +6,10 @@
                     <thead>
                         <tr class="mdc-data-table__header-row">
                             <th class="mdc-data-table__header-cell" role="columnheader" scope="col">Row</th>
-                            <th class="mdc-data-table__header-cell mdc-data-table__header-cell--numeric" role="columnheader"
-                                scope="col">Create Date</th>
-                            <th class="mdc-data-table__header-cell mdc-data-table__header-cell--numeric" role="columnheader"
-                                scope="col">Name</th>
+                            <th class="mdc-data-table__header-cell" role="columnheader" scope="col">Name</th>
+                            <th class="mdc-data-table__header-cell" role="columnheader" scope="col">Create Date</th>
+                            <th class="mdc-data-table__header-cell" role="columnheader" scope="col">Last updated</th>
+                            <th class="mdc-data-table__header-cell" role="columnheader" scope="col"></th>
                         </tr>
                     </thead>
                     <tbody class="mdc-data-table__content">
@@ -20,11 +20,30 @@
                                     <th class="mdc-data-table__cell" scope="row">
                                         <wd:print wd:value="wd.v('admin').row" />
                                     </th>
-                                    <td class="mdc-data-table__cell mdc-data-table__cell--numeric">
+                                    <td class="mdc-data-table__cell">
+                                        <wd:print wd:value="wd.v('admin').field('name')" />
+                                    </td>
+                                    <td class="mdc-data-table__cell">
                                         <wd:print wd:value="wd.v('admin').term_begin.toLocaleString()" />
                                     </td>
-                                    <td class="mdc-data-table__cell mdc-data-table__cell--numeric">
-                                        <wd:print wd:value="wd.v('admin').field('name')" />
+                                    <td class="mdc-data-table__cell">
+                                        <wd:print wd:value="wd.v('admin').last_update.toLocaleString()" />
+                                    </td>
+                                    <td class="mdc-data-table__cell">
+                                        <a wd:href="'/-db/settings/admin/edit/?row='+wd.v('admin').row"
+                                            class="mdc-icon-button material-icons">
+                                            <div class="mdc-icon-button__ripple"></div>
+                                            edit
+                                        </a>
+                                        <form method="post" action="">
+                                            <input type="hidden" name="action" value="-db/admin" />
+                                            <input type="hidden" name="delete" value="1" />
+                                            <input type="hidden" name="row" wd:value="wd.v('admin').row" />
+                                            <button class="mdc-icon-button material-icons">
+                                                <div class="mdc-icon-button__ripple"></div>
+                                                delete_forever
+                                            </button>
+                                        </form>
                                     </td>
                                 </tr>
                             </wd:for>
@@ -33,7 +52,7 @@
                 </table>
             </div>
         </div>
-        <a href="/-db/settings/admin/edit/?id=0" class="mdc-fab mdc-fab--mini">
+        <a href="/-db/settings/admin/edit/?row=0" class="mdc-fab mdc-fab--mini">
             <div class="mdc-fab__ripple"></div>
             <span class="material-icons mdc-fab__icon">add</span>
         </a>

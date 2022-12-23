@@ -20,8 +20,12 @@ body {
 
 .data-table-wrapper .mdc-fab {
     position: absolute;
-    bottom: -20px;
-    margin-left: -18px;
+    bottom: -26px;
+    margin-left: -16px;
+}
+
+.mdc-data-table form{
+    display:inline;
 }
 
 .fab-corner {
@@ -39,4 +43,8 @@ body {
     width: 100%;
     text-align: center;
     margin-top: 16px;
+}
+
+.form-line + .form-line{
+    margin-top:16px;
 }
