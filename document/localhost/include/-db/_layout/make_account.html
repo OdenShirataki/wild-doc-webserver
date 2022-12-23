@@ -4,17 +4,17 @@
 </div>
 <form method="post">
     <input type="hidden" name="action" value="-db/create_account_1st" />
-    <div>
+    <div class="form-line">
         <wd:stack var="type:'text',name:'name',label:'Name',value:wd.input && wd.input.post ? wd.input.post.name : ''">
             <wd:include src="/include/material/text_field.html" />
         </wd:stack>
     </div>
-    <div>
+    <div class="form-line">
         <wd:stack var="type:'password',name:'password',label:'Password',value:wd.input && wd.input.post ? wd.input.post.password : ''">
             <wd:include src="/include/material/text_field.html" />
         </wd:stack>
     </div>
-    <div>
+    <div class="form-line">
         <button class="mdc-button mdc-button--raised">
             <span class="mdc-button__label">create administrator account</span>
         </button>

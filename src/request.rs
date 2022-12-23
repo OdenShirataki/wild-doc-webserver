@@ -161,7 +161,7 @@ pub(super) async fn request(
                                 }
                             }
                             if let Ok(params) = queryst::parse(&params) {
-                                params_all.insert("postest".to_owned(), params);
+                                params_all.insert("post".to_owned(), params);
                             }
                         }
 

@@ -1,8 +1,5 @@
 <wd><wd:script>
-    console.log(wd.input);
-    wd.result_options.headers={
-        "content-type":"text/html; charset=utf-8"
-    };
+    wd.result_options.headers={};
     if(wd.input.headers['cookie']){
         wd.general.cookie=((cookie)=>{
             let r=new Object();
@@ -37,4 +34,8 @@
     if(wd.general.uri.match(/\/$/)){
         wd.general.uri+="index.html";
     }
-</wd:script><wd:include wd:src="wd.general.uri" /></wd:when></wd:case></wd>
+</wd:script><wd:include wd:src="wd.general.uri" /></wd:when></wd:case><wd:script>
+    if(wd.result_options.headers['content-type']===void 0){
+        wd.result_options.headers['content-type']="text/html; charset=utf-8";
+    }
+</wd:script></wd>
