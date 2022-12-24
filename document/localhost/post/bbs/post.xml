@@ -5,4 +5,6 @@
             <field name="text"><wd:print wd:value="wd.input.post.text" /></field>
         </collection>
     </wd:update>
-</wd:session>
+</wd:session><wd:script>
+    wd.result_options.headers['location']="/bbs-demo/";
+</wd:script>
