@@ -1,13 +1,12 @@
 use core::task::{Context, Poll};
-use std::{sync::Arc, pin::Pin};
-
 use futures_util::{ready, Future};
 use hyper::server::{
-    conn::{AddrStream, AddrIncoming}
-    ,accept::Accept
+    accept::Accept,
+    conn::{AddrIncoming, AddrStream},
 };
-use rustls::{ServerConfig, server::ResolvesServerCertUsingSni, sign::RsaSigningKey};
-use tokio::io::{AsyncRead, ReadBuf, AsyncWrite};
+use rustls::{server::ResolvesServerCertUsingSni, sign::RsaSigningKey, ServerConfig};
+use std::{io, pin::Pin, sync::Arc};
+use tokio::io::{AsyncRead, AsyncWrite, ReadBuf};
 
 enum State {
     Handshaking(tokio_rustls::Accept<AddrStream>),
@@ -29,7 +28,7 @@ impl AsyncRead for TlsStream {
         self: Pin<&mut Self>,
         cx: &mut Context,
         buf: &mut ReadBuf,
-    ) -> Poll<std::io::Result<()>> {
+    ) -> Poll<io::Result<()>> {
         let pin = self.get_mut();
         match pin.state {
             State::Handshaking(ref mut accept) => match ready!(Pin::new(accept).poll(cx)) {
@@ -49,7 +48,7 @@ impl AsyncWrite for TlsStream {
         self: Pin<&mut Self>,
         cx: &mut Context<'_>,
         buf: &[u8],
-    ) -> Poll<std::io::Result<usize>> {
+    ) -> Poll<io::Result<usize>> {
         let pin = self.get_mut();
         match pin.state {
             State::Handshaking(ref mut accept) => match ready!(Pin::new(accept).poll(cx)) {
@@ -63,13 +62,13 @@ impl AsyncWrite for TlsStream {
             State::Streaming(ref mut stream) => Pin::new(stream).poll_write(cx, buf),
         }
     }
-    fn poll_flush(mut self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<std::io::Result<()>> {
+    fn poll_flush(mut self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<io::Result<()>> {
         match self.state {
             State::Handshaking(_) => Poll::Ready(Ok(())),
             State::Streaming(ref mut stream) => Pin::new(stream).poll_flush(cx),
         }
     }
-    fn poll_shutdown(mut self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<std::io::Result<()>> {
+    fn poll_shutdown(mut self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<io::Result<()>> {
         match self.state {
             State::Handshaking(_) => Poll::Ready(Ok(())),
             State::Streaming(ref mut stream) => Pin::new(stream).poll_shutdown(cx),
@@ -88,7 +87,7 @@ impl TlsAcceptor {
 }
 impl Accept for TlsAcceptor {
     type Conn = TlsStream;
-    type Error = std::io::Error;
+    type Error = io::Error;
 
     fn poll_accept(
         self: Pin<&mut Self>,
@@ -103,38 +102,46 @@ impl Accept for TlsAcceptor {
     }
 }
 
-pub(super) fn error(err: String)->std::io::Error {
-    std::io::Error::new(std::io::ErrorKind::Other, err)
+pub(super) fn error(err: String) -> io::Error {
+    io::Error::new(io::ErrorKind::Other, err)
 }
 
 pub(super) fn add_certificate_to_resolver(
-    name: &str, hostname: &str,
-    resolver: &mut ResolvesServerCertUsingSni
+    name: &str,
+    hostname: &str,
+    resolver: &mut ResolvesServerCertUsingSni,
 ) {
-    resolver.add(hostname, rustls::sign::CertifiedKey::new(
-        load_certs(&format!("certificates/{}/fullchain.pem", name)).unwrap()
-        , Arc::new(
-            RsaSigningKey::new(
-                &load_private_key(&format!("certificates/{}/privkey.pem", name)).unwrap()
-            ).unwrap()
+    resolver
+        .add(
+            hostname,
+            rustls::sign::CertifiedKey::new(
+                load_certs(&format!("certificates/{}/fullchain.pem", name)).unwrap(),
+                Arc::new(
+                    RsaSigningKey::new(
+                        &load_private_key(&format!("certificates/{}/privkey.pem", name)).unwrap(),
+                    )
+                    .unwrap(),
+                ),
+            ),
         )
-    )).expect(&("Invalid certificate for ".to_owned()+hostname));
+        .expect(&("Invalid certificate for ".to_owned() + hostname));
 }
 
-pub(super) fn load_certs(filename: &str)->std::io::Result<Vec<rustls::Certificate>>{
-    let certs = rustls_pemfile::certs(&mut std::io::BufReader::new(
-        std::fs::File::open(filename).map_err(|e| error(format!("failed to open {}: {}", filename, e)))?
+pub(super) fn load_certs(filename: &str) -> io::Result<Vec<rustls::Certificate>> {
+    let certs = rustls_pemfile::certs(&mut io::BufReader::new(
+        std::fs::File::open(filename)
+            .map_err(|e| error(format!("failed to open {}: {}", filename, e)))?,
     ))
-        .map_err(|_| error("failed to load certificate".into()))?;
-    Ok(
-        certs.into_iter().map(rustls::Certificate).collect()
-    )
+    .map_err(|_| error("failed to load certificate".into()))?;
+    Ok(certs.into_iter().map(rustls::Certificate).collect())
 }
 
-pub(super) fn load_private_key(filename: &str)->std::io::Result<rustls::PrivateKey> {
-    let keys=rustls_pemfile::rsa_private_keys(&mut std::io::BufReader::new(
-        std::fs::File::open(filename).map_err(|e| error(format!("failed to open {}: {}", filename, e)))?
-    )).map_err(|_| error("failed to load private key".into()))?;
+pub(super) fn load_private_key(filename: &str) -> io::Result<rustls::PrivateKey> {
+    let keys = rustls_pemfile::rsa_private_keys(&mut io::BufReader::new(
+        std::fs::File::open(filename)
+            .map_err(|e| error(format!("failed to open {}: {}", filename, e)))?,
+    ))
+    .map_err(|_| error("failed to load private key".into()))?;
     if keys.len() != 1 {
         return Err(error("expected a single private key".into()));
     }

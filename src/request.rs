@@ -1,13 +1,10 @@
 use bytes::Bytes;
 use futures::stream::once;
-use hyper::header::HeaderName;
-use hyper::http::HeaderValue;
-use hyper::{Body, HeaderMap, Method, Request, Response, StatusCode};
+use hyper::{
+    header::HeaderName, http::HeaderValue, Body, HeaderMap, Method, Request, Response, StatusCode,
+};
 use multer::Multipart;
-use std::convert::Infallible;
-use std::io::Read;
-use std::{collections::HashMap, fs::File};
-
+use std::{collections::HashMap, convert::Infallible, fs::File, io::Read};
 use wild_doc_client_lib::WildDocClient;
 
 fn headers_from_json(json: &str) -> Option<HeaderMap> {

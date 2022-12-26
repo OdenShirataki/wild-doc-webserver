@@ -1,0 +1,9 @@
+<wd:script>
+    wd.general.session_name=wd.general.session_id()+'-login';
+</wd:script><wd:session
+    wd:name="wd.general.session_name"
+><wd:search name="login" collection="login"></wd:search><wd:result
+    var="login" search="login"
+><wd:case wd:value="wd.v('login').length>0"><wd:when
+    wd:value="true"
+><wd:include wd:src="wd.v('post_path')" /></wd:when></wd:case></wd:result>

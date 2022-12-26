@@ -1,14 +1,18 @@
 use futures_util::future::join;
-use hyper::server::conn::{AddrIncoming, Http};
-use hyper::service::{make_service_fn, service_fn};
-use hyper::Server;
+use hyper::{
+    server::conn::{AddrIncoming, Http},
+    service::{make_service_fn, service_fn},
+    Server,
+};
 use once_cell::sync::Lazy;
 use rustls::server::ResolvesServerCertUsingSni;
-use std::collections::HashMap;
-use std::io::Read;
-use std::net::SocketAddr;
-use std::sync::Arc;
-use std::{io, sync};
+use std::{
+    collections::HashMap,
+    io::Read,
+    net::SocketAddr,
+    sync::Arc,
+    {io, sync},
+};
 use tokio::net::TcpListener;
 
 mod request;

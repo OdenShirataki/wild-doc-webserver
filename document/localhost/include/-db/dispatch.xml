@@ -14,4 +14,4 @@
     wd:value="true"
 ><wd:include src="/include/-db/_layout/html.html" /></wd:when><wd:else><wd:stack
     var="content_path:'/include/-db/_layout/login_form.html',addtional_css:['/-db/assets/css/login.css']"
-><wd:include src="/include/-db/_layout/html.html" /></wd:stack></wd:else></wd:case></wd:result></wd:else></wd:case>
+><wd:include src="/include/-db/_layout/html.html" /></wd:stack></wd:else></wd:case></wd:result></wd:session></wd:else></wd:case>
