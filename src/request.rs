@@ -51,7 +51,7 @@ struct UploadFile {
     file_name: String,
     content_type: String,
     len: usize,
-    data: String,
+    data: Vec<u8>,
 }
 struct UploadFileWrapper {
     key: String,
@@ -141,7 +141,7 @@ pub(super) async fn request(
                                                     file_name: file_name.to_owned(),
                                                     content_type: content_type.to_string(),
                                                     len: chunk.len(),
-                                                    data: base64::encode(chunk),
+                                                    data: chunk.to_vec(),
                                                 },
                                             });
                                         } else {

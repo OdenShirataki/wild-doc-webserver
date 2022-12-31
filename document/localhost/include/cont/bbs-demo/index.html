@@ -14,7 +14,7 @@
     </ul>
 </wd:result>
 <hr />
-<form method="post">
+<form method="post" enctype="multipart/form-data">
     <input type="hidden" name="action" value="bbs/post" />
     <div class="bbs-form">
         <div>
@@ -28,6 +28,9 @@
                 </span>
                 <input class="mdc-text-field__input" type="text" name="name" aria-labelledby="name" />
             </label>
+        </div>
+        <div>
+            <input type="file" name="file" />
         </div>
         <div>
             <label class="mdc-text-field mdc-text-field--outlined mdc-text-field--textarea mdc-text-field--no-label">
