@@ -1,7 +1,7 @@
 <wd:script>
     import { Image, decode } from "https://deno.land/x/imagescript@1.2.15/mod.ts";
 
-    const img = await decode(wd.input.post.file.data);
+    const img = await decode(Uint8Array.from(atob(wd.input.post.file.data),c=>c.charCodeAt(0)));
     const small = img.resize(img.width / 10, Image.RESIZE_AUTO);
     wd.general.img=await small.encodeJPEG();
     wd.result_options.headers['content-type']=wd.input.post.file.content_type;

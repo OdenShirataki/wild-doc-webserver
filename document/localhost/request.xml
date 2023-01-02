@@ -30,9 +30,13 @@
 ><wd:when wd:value="true"><wd:include wd:src="'/post/'+wd.input.post['action']+'.xml'" /></wd:when></wd:case><wd:case
     wd:value="wd.result_options.headers['location']===void 0"
 ><wd:when wd:value="true"><wd:script>
-    wd.general.uri='/doc'+wd.input.uri;
-    if(wd.general.uri.match(/\/$/)){
-        wd.general.uri+="index.html";
+    if(wd.input.uri.match(/^\/-img\//)){
+        wd.general.uri='/-img.xml';
+    }else{
+        wd.general.uri='/doc'+wd.input.uri;
+        if(wd.general.uri.match(/\/$/)){
+            wd.general.uri+="index.html";
+        }
     }
 </wd:script><wd:include wd:src="wd.general.uri" /></wd:when></wd:case><wd:script>
     if(wd.result_options.headers['content-type']===void 0){

@@ -9,7 +9,9 @@
             <wd:print wd:value="wd.v('r').row" /> : <wd:print wd:value="wd.v('r').field('name')" />
             <div>
                 <wd:print wd:value="wd.v('r').field('text')" />
-            </div>
+            </div><wd:case wd:value="wd.v('r').field('image_name').length>0"><wd:when wd:value="true"><div>
+                <img wd:src="'/-img/bbs/'+wd.v('r').row+'/image'" />
+            </div></wd:when></wd:case>
         </li></wd:for>
     </ul>
 </wd:result>

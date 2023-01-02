@@ -876,7 +876,7 @@ version = "0.0.15"
 
 [[package]]
 name = "wild-doc-webserver"
-version = "0.0.21"
+version = "0.0.22"
 dependencies = [
  "base64 0.20.0",
  "bytes",

@@ -1,0 +1,15 @@
+<wd:script>
+    const s=wd.input.uri.split('/');
+    wd.general.p={
+        collection:s[2]
+        ,row:s[3]
+        ,field:s[4]
+    };
+</wd:script><wd:search name="img" wd:collection="wd.general.p.collection">
+    <row method="in" wd:value="wd.general.p.row" />
+</wd:search><wd:result var="img" search="img"><wd:for var="r" wd:in="wd.v('img')"><wd:script>
+    wd.result_options.headers['content-type']=wd.v('r').field(wd.general.p.field+'_content_type');
+    wd.general.img=Uint8Array.from(atob(wd.v('r').field(wd.general.p.field+'_data')),c=>c.charCodeAt(0));
+</wd:script><wd:print
+    wd:value="wd.general.img"
+/></wd:for></wd:result>
