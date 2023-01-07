@@ -14,6 +14,7 @@
                                 role="columnheader" scope="col">Row</th>
                             <th class="mdc-data-table__header-cell" role="columnheader" scope="col">Create date</th>
                             <th class="mdc-data-table__header-cell" role="columnheader" scope="col">Name</th>
+                            <th class="mdc-data-table__header-cell" role="columnheader" scope="col">Image</th>
                             <th class="mdc-data-table__header-cell" role="columnheader" scope="col">Message</th>
                             <th class="mdc-data-table__header-cell" role="columnheader" scope="col"></th>
                         </tr>
@@ -29,6 +30,9 @@
                                 </td>
                                 <td class="mdc-data-table__cell">
                                     <wd:print wd:value="wd.v('r').field('name')" />
+                                </td>
+                                <td class="mdc-data-table__cell">
+                                    <img wd:src="'/-img/bbs/'+wd.v('r').row+'/image/128_42_cover/'" />
                                 </td>
                                 <td class="mdc-data-table__cell">
                                     <wd:print wd:value="wd.v('r').field('text')" />

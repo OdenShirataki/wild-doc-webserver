@@ -1,15 +1,53 @@
 <wd:script>
     const s=wd.input.uri.split('/');
+    const whm=s[5] ? s[5].split('_') : new Array();
+
+    const mode=whm[2] ? whm[2] : '';
+
     wd.general.p={
         collection:s[2]
         ,row:s[3]
         ,field:s[4]
+        ,width:whm[0]
+        ,height:whm[1]
+        ,mode:mode
     };
 </wd:script><wd:search name="img" wd:collection="wd.general.p.collection">
     <row method="in" wd:value="wd.general.p.row" />
 </wd:search><wd:result var="img" search="img"><wd:for var="r" wd:in="wd.v('img')"><wd:script>
-    wd.result_options.headers['content-type']=wd.v('r').field(wd.general.p.field+'_content_type');
-    wd.general.img=Uint8Array.from(atob(wd.v('r').field(wd.general.p.field+'_data')),c=>c.charCodeAt(0));
+    import { Image, decode } from "https://deno.land/x/imagescript@1.2.15/mod.ts";
+
+    const img = await decode(Uint8Array.from(atob(wd.v('r').field(wd.general.p.field+'_data')),c=>c.charCodeAt(0)));
+
+    const resized = (function(){
+        if(wd.general.p.width || wd.general.p.height){
+            const width=wd.general.p.width ? wd.general.p.width : Image.RESIZE_AUTO;
+            const height=wd.general.p.height ? wd.general.p.height : Image.RESIZE_AUTO;
+            switch(wd.general.p.mode){
+            case 'cover':
+                return img.cover(width,height);
+            case 'contain':
+                return img.contain(width,height);
+            case 'crop':
+                return img.crop(
+                    img.width/2,
+                    img.height/2,
+                    width,
+                    height
+                );
+            case 'fit':
+                return img.fit(width,height);
+            default:
+                return img.resize(width,height);
+            }
+        }
+        return img;
+    })();
+
+    wd.general.img=await resized.encode();
+    
+    wd.result_options.headers['content-type']='image/png';
+    wd.result_options.headers['Cache-Control']='public, max-age='+(Date.now()+60*60*24*7);
 </wd:script><wd:print
     wd:value="wd.general.img"
 /></wd:for></wd:result>

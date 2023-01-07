@@ -9,5 +9,5 @@
         </collection>
     </wd:update>
 </wd:session><wd:script>
-    //wd.result_options.headers['location']="/bbs-demo/";
+    wd.result_options.headers['location']="/bbs-demo/";
 </wd:script>

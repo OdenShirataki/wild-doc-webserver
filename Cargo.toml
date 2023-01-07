@@ -1,6 +1,6 @@
 [package]
 name = "wild-doc-webserver"
-version = "0.0.22"
+version = "0.0.23"
 edition = "2021"
 
 authors = ["Oden Shirataki <oden.srtk@gmail.com>"]
@@ -16,7 +16,7 @@ license = "MIT/Apache-2.0"
 
 [dependencies]
 hyper = {version="0.14",features=["server"]}
-tokio = { version = "1.23", features = ["rt-multi-thread", "macros"] }
+tokio = { version = "1.24", features = ["rt-multi-thread", "macros"] }
 rustls = "0.20"
 rustls-pemfile="1.0"
 hyper-rustls = "0.23"
