@@ -1,7 +1,0 @@
-<wd:session wd:name="wd.general.session_id()+'-bbs'" initialize="true">
-    <wd:update commit="1">
-        <collection name="bbs" wd:row="wd.input.post.row" delete="1"></collection>
-    </wd:update>
-</wd:session><wd:script>
-    wd.result_options.headers['location']="/-db/bbs/";
-</wd:script>

@@ -1,7 +1,0 @@
-<wd:script>
-    wd.result_options.headers['location']="/-db/?loggedout";
-    wd.general.session_name=wd.general.session_id()+'-login';
-</wd:script><wd:session
-    wd:name="wd.general.session_name"
-    clear_on_close="true"
-></wd:session>

@@ -1,3 +1,4 @@
 [wilddoc]
 server_addr="localhost"
 server_port="51818"
+document_dir="D:/oden/wild-wsms/document"

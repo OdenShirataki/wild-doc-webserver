@@ -4,7 +4,13 @@ use hyper::{
     header::HeaderName, http::HeaderValue, Body, HeaderMap, Method, Request, Response, StatusCode,
 };
 use multer::Multipart;
-use std::{collections::HashMap, convert::Infallible, fs::File, io::Read};
+use std::{
+    collections::HashMap,
+    convert::Infallible,
+    fs::File,
+    io::Read,
+    path::{Path, PathBuf},
+};
 use wild_doc_client_lib::WildDocClient;
 
 fn headers_from_json(json: &str) -> Option<HeaderMap> {
@@ -29,14 +35,18 @@ fn headers_from_json(json: &str) -> Option<HeaderMap> {
     None
 }
 
-fn get_static_filename(document_root: &str, hostname: &str, uri: &str) -> Option<String> {
+fn get_static_filename(document_root: &Path, hostname: &str, uri: &str) -> Option<PathBuf> {
     if uri.ends_with("/index.html") != true {
-        let filename = document_root.to_owned()
-            + hostname
-            + "/static"
-            + uri
-            + &if uri.ends_with("/") { "index.html" } else { "" };
-        if std::path::Path::new(&filename).exists() {
+        let mut filename = document_root.to_path_buf();
+        filename.push(hostname);
+        filename.push("static");
+        let mut uri=uri.to_owned();
+        uri.remove(0);
+        filename.push(&uri);
+        if uri.ends_with("/") {
+            filename.push("index.html");
+        }
+        if filename.exists() {
             Some(filename)
         } else {
             None
@@ -51,7 +61,7 @@ struct UploadFile {
     file_name: String,
     content_type: String,
     len: usize,
-    data: String,   //(base64)
+    data: String, //(base64)
 }
 struct UploadFileWrapper {
     key: String,
@@ -60,8 +70,10 @@ struct UploadFileWrapper {
 pub(super) async fn request(
     wd_host: String,
     wd_port: String,
+    document_dir: String,
     req: Request<Body>,
 ) -> Result<Response<Body>, hyper::Error> {
+    let document_dir = std::path::PathBuf::from(document_dir);
     let mut response = Response::new(Body::empty());
 
     let mut headers: HashMap<String, String> = HashMap::new();
@@ -72,15 +84,13 @@ pub(super) async fn request(
         if let Some(host) = host.split(":").collect::<Vec<&str>>().get(0) {
             let host = host.to_string();
             let uri = req.uri().path().to_owned();
-            let document_root = "document/".to_owned();
-
-            if let Some(static_file) = get_static_filename(&document_root, &host, &uri) {
+            if let Some(static_file) = get_static_filename(&document_dir, &host, &uri) {
                 let mut f = File::open(static_file).unwrap();
                 let mut buf = Vec::new();
                 f.read_to_end(&mut buf).unwrap();
                 *response.body_mut() = Body::from(buf);
             } else {
-                let mut wdc = WildDocClient::new(&wd_host, &wd_port, &document_root, &host);
+                let mut wdc = WildDocClient::new(&wd_host, &wd_port, &document_dir, &host);
 
                 let mut params_all: HashMap<String, serde_json::Value> = HashMap::new();
 
@@ -179,7 +189,9 @@ pub(super) async fn request(
                                 json = json.replace(&key, &file);
                             }
                         }
-                        let filename = document_root.to_owned() + &host + "/request.xml";
+                        let mut filename = document_dir.clone();
+                        filename.push(host);
+                        filename.push("request.xml");
                         let mut f = File::open(filename).unwrap();
                         let mut xml = String::new();
                         f.read_to_string(&mut xml).unwrap();

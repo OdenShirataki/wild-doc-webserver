@@ -29,6 +29,7 @@ struct Config {
 struct ConfigWildDoc {
     server_addr: Option<String>,
     server_port: Option<String>,
+    document_dir: Option<String>,
 }
 
 static SETTING: Lazy<std::sync::Mutex<HashMap<String, String>>> = Lazy::new(|| {
@@ -39,12 +40,30 @@ static SETTING: Lazy<std::sync::Mutex<HashMap<String, String>>> = Lazy::new(|| {
             let config: Result<Config, toml::de::Error> = toml::from_str(&toml);
             if let Ok(config) = config {
                 if let Some(config) = config.wilddoc {
-                    if let Some(server_addr) = config.server_addr {
-                        m.insert("server_addr".to_string(), server_addr.to_string());
-                    }
-                    if let Some(server_port) = config.server_port {
-                        m.insert("server_port".to_string(), server_port.to_string());
-                    }
+                    m.insert(
+                        "server_addr".to_string(),
+                        if let Some(server_addr) = config.server_addr {
+                            server_addr
+                        } else {
+                            "localhost".to_string()
+                        },
+                    );
+                    m.insert(
+                        "server_port".to_string(),
+                        if let Some(server_port) = config.server_port {
+                            server_port
+                        } else {
+                            "51818".to_string()
+                        },
+                    );
+                    m.insert(
+                        "document_dir".to_string(),
+                        if let Some(document_dir) = config.document_dir {
+                            document_dir
+                        } else {
+                            "document".to_string()
+                        },
+                    );
                 }
             }
         }
@@ -77,7 +96,13 @@ async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
                                     .get("server_port")
                                     .unwrap()
                                     .to_owned();
-                                request::request(addr, port, req)
+                                let document_dir = SETTING
+                                    .lock()
+                                    .unwrap()
+                                    .get("document_dir")
+                                    .unwrap()
+                                    .to_owned();
+                                request::request(addr, port, document_dir, req)
                             }),
                         )
                         .await
@@ -130,7 +155,13 @@ async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
                         .get("server_port")
                         .unwrap()
                         .to_owned();
-                    request::request(addr, port, req)
+                    let document_dir = SETTING
+                        .lock()
+                        .unwrap()
+                        .get("document_dir")
+                        .unwrap()
+                        .to_owned();
+                    request::request(addr, port, document_dir, req)
                 }))
             }))
             .await
