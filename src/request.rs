@@ -13,34 +13,12 @@ use std::{
 };
 use wild_doc_client_lib::WildDocClient;
 
-fn headers_from_json(json: &str) -> Option<HeaderMap> {
-    if let Ok(result_options) = serde_json::from_str::<HashMap<String, serde_json::Value>>(json) {
-        if let Some(headers) = result_options.get("headers") {
-            if let serde_json::Value::Object(headers) = headers {
-                let mut response_headers = HeaderMap::new();
-                for (k, v) in headers {
-                    if let Some(v) = v.as_str() {
-                        if let (Ok(k), Ok(v)) = (
-                            HeaderName::from_bytes(k.as_bytes()),
-                            HeaderValue::from_str(v),
-                        ) {
-                            response_headers.insert(k, v);
-                        }
-                    }
-                }
-                return Some(response_headers);
-            }
-        }
-    }
-    None
-}
-
 fn get_static_filename(document_root: &Path, hostname: &str, uri: &str) -> Option<PathBuf> {
     if uri.ends_with("/index.html") != true {
         let mut filename = document_root.to_path_buf();
         filename.push(hostname);
         filename.push("static");
-        let mut uri=uri.to_owned();
+        let mut uri = uri.to_owned();
         uri.remove(0);
         filename.push(&uri);
         if uri.ends_with("/") {
@@ -196,15 +174,46 @@ pub(super) async fn request(
                         let mut xml = String::new();
                         f.read_to_string(&mut xml).unwrap();
                         if let Ok(r) = wdc.exec(&xml, &json) {
-                            if let Some(headers) = headers_from_json(r.options_json()) {
-                                *response.headers_mut() = headers;
-                                if response.headers().contains_key("location") {
-                                    *response.status_mut() = StatusCode::SEE_OTHER;
-                                    *response.body_mut() = Body::from("");
-                                    return Ok(response);
+                            let result_options = serde_json::from_str::<
+                                HashMap<String, serde_json::Value>,
+                            >(r.options_json());
+
+                            let mut need_response_body = true;
+                            if let Ok(result_options) = result_options {
+                                let mut response_status = StatusCode::FOUND;
+                                if let Some(status) = result_options.get("status") {
+                                    let status = status.to_string();
+                                    if status == "404" {
+                                        response_status = StatusCode::NOT_FOUND;
+                                    }
+                                }
+                                let mut response_headers = HeaderMap::new();
+                                if let Some(headers) = result_options.get("headers") {
+                                    if let serde_json::Value::Object(headers) = headers {
+                                        for (k, v) in headers {
+                                            if let Some(v) = v.as_str() {
+                                                if let (Ok(k), Ok(v)) = (
+                                                    HeaderName::from_bytes(k.as_bytes()),
+                                                    HeaderValue::from_str(v),
+                                                ) {
+                                                    response_headers.insert(k, v);
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                                if response_headers.contains_key("location") {
+                                    response_status = StatusCode::SEE_OTHER;
+                                    need_response_body = false;
+                                }
+                                *response.headers_mut() = response_headers;
+                                if response_status != StatusCode::FOUND {
+                                    *response.status_mut() = response_status;
                                 }
                             }
-                            *response.body_mut() = Body::from(r.body().to_vec());
+                            if need_response_body {
+                                *response.body_mut() = Body::from(r.body().to_vec());
+                            }
                         } else {
                             *response.body_mut() = Body::from("error");
                         }
